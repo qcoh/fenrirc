@@ -25,8 +25,17 @@ var (
 	SetOutputMode = termbox.SetOutputMode
 )
 
+var (
+	mockBuffer [][]rune
+)
+
 // SetMockUI overwrites all termbox functions with dummy functions.
 func SetMockUI(w, h int) {
+	mockBuffer = make([][]rune, w)
+	for i := range mockBuffer {
+		mockBuffer[i] = make([]rune, h)
+	}
+
 	Init = func() error {
 		return nil
 	}
@@ -37,7 +46,9 @@ func SetMockUI(w, h int) {
 	Flush = func() error {
 		return nil
 	}
-	SetCell = func(int, int, rune, termbox.Attribute, termbox.Attribute) {}
+	SetCell = func(x int, y int, ch rune, _ termbox.Attribute, _ termbox.Attribute) {
+		mockBuffer[x][y] = ch
+	}
 	Size = func() (int, int) {
 		return w, h
 	}
