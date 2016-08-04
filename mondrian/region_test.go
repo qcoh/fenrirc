@@ -65,4 +65,15 @@ func TestcomplicatedPrint(t *testing.T) {
 	if r.Cy != 1 || r.Cx != 5 {
 		t.Errorf("r.Cx = %d, r.Cy = %d, should be (5,1)", r.Cx, r.Cy)
 	}
+
+	r.Move(0, 0)
+	r.Xbase = 4
+	r.Printf("one two three")
+	// should print like this:
+	// >....one
+	// >....two
+	// >....three
+	if r.Cy != 2 || r.Cx != 9 {
+		t.Errorf("r.Cx = %d, r.Cy = %d, should be (9,2)", r.Cx, r.Cy)
+	}
 }
