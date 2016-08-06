@@ -22,6 +22,10 @@ type Region struct {
 	Xbase int
 }
 
+var (
+	defaultRegion = &Region{Width: 100, Height: 100}
+)
+
 // SetCell prints a character to termbox' internal buffer.
 func (r *Region) SetCell(x, y int, ch rune, fg, bg termbox.Attribute) {
 	if 0 <= x && x < r.Width && 0 <= y && y < r.Height {
