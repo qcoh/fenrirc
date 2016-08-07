@@ -15,6 +15,8 @@ var (
 	Flush = termbox.Flush
 	// SetCell = termbox.SetCell
 	SetCell = termbox.SetCell
+	// SetCursor = termbox.SetCursor
+	SetCursor = termbox.SetCursor
 	// Size = termbox.Size
 	Size = termbox.Size
 	// Sync = termbox.Sync
@@ -49,6 +51,7 @@ func SetMockUI(w, h int) {
 	SetCell = func(x int, y int, ch rune, _ termbox.Attribute, _ termbox.Attribute) {
 		mockBuffer[x][y] = ch
 	}
+	SetCursor = func(x, y int) {}
 	Size = func() (int, int) {
 		return w, h
 	}
