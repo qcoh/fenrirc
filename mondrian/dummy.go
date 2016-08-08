@@ -6,6 +6,11 @@ type Dummy struct {
 	Visible
 }
 
+// NewDummy returns a Dummy.
+func NewDummy() *Dummy {
+	return &Dummy{Region: *defaultRegion}
+}
+
 // Draw draws a solid rectangle with color given by `d.Bg`.
 func (d *Dummy) Draw() {
 	d.Clear()
@@ -13,5 +18,7 @@ func (d *Dummy) Draw() {
 
 // Resize resizes `d`.
 func (d *Dummy) Resize(r *Region) {
+	color := d.Region.Bg
 	d.Region = *r
+	d.Region.Bg = color
 }
