@@ -6,7 +6,14 @@ import (
 
 var (
 	// Init = termbox.Init
-	Init = termbox.Init
+	Init = func() error {
+		if err := termbox.Init(); err != nil {
+			return err
+		}
+		termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
+		termbox.Flush()
+		return nil
+	}
 	// Clear = termbox.Clear
 	Clear = termbox.Clear
 	// Close = termbox.Close
