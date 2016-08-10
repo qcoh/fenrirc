@@ -56,17 +56,17 @@ mainloop:
 				mondrian.Sync()
 				a.Resize(&mondrian.Region{Width: ev.Width, Height: ev.Height})
 				mondrian.Draw(a)
-			}
-			if ev.Ch != 0 {
-				a.prompt.HandleKey(ev)
-			}
-			if ev.Key != 0 {
-				a.prompt.HandleKey(ev)
-				a.current.HandleKey(ev)
-			}
+			} else if ev.Type == termbox.EventKey {
+				if ev.Ch != 0 {
+					a.prompt.HandleKey(ev)
+				} else {
+					a.prompt.HandleKey(ev)
+					a.current.HandleKey(ev)
+				}
 
-			if ev.Key == termbox.KeyCtrlQ {
-				break mainloop
+				if ev.Key == termbox.KeyCtrlQ {
+					break mainloop
+				}
 			}
 		}
 	}
