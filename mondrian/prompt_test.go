@@ -23,3 +23,21 @@ func TestPromptDraw(t *testing.T) {
 		}
 	}
 }
+
+func TestPromptCursor(t *testing.T) {
+	SetMockUI(100, 100)
+	SetCursor = func(x, y int) {
+		mockBuffer[x][y] = '!'
+	}
+	p := NewPrompt(512)
+	p.SetVisibility(true)
+	p.Resize(&Region{Y: 50, Width: 100, Height: 1})
+
+	p.insert('a')
+	p.startGap--
+	Draw(p)
+
+	if mockBuffer[0][50] != '!' {
+		t.Errorf("Cursor missing, mockBuffer[%d][%d] = %c != '!'", 0, 50, mockBuffer[0][50])
+	}
+}

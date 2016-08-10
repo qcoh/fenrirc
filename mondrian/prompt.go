@@ -59,7 +59,7 @@ func (p *Prompt) Draw() {
 		p.SetCell(p.Cx, p.Cy, ch, p.Fg, p.Bg)
 		p.Cx += runewidth.RuneWidth(ch)
 	}
-	SetCursor(p.Cx, p.Cy)
+	SetCursor(p.X+p.Cx, p.Y+p.Cy)
 	for _, ch := range p.buffer[p.endGap+1:] {
 		// out of region
 		if p.Cx >= p.Width {
