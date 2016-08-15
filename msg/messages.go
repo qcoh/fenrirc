@@ -2,10 +2,12 @@ package msg
 
 import (
 	"../mondrian"
+	"time"
 )
 
 var (
-	NewSimple = newSimple
+	NewSimple  = newSimple
+	NewDefault = newDefault
 )
 
 type message interface {
@@ -39,7 +41,7 @@ type Simple struct {
 	Text string
 }
 
-// NewSimple constructs a simple message.
+// newSimple constructs a simple message.
 func newSimple(text string) mondrian.Message {
 	return Wrap(&Simple{text})
 }
@@ -47,4 +49,23 @@ func newSimple(text string) mondrian.Message {
 // Draw draws the message.
 func (s *Simple) Draw(r *mondrian.Region) {
 	r.LPrintf("%s", s.Text)
+}
+
+// Default displays time, origin (irc network) and the raw line.
+type Default struct {
+	From string
+	Raw  string
+	ToA  time.Time
+}
+
+// newDefault constructs a default message.
+func newDefault(from, raw string, toa time.Time) mondrian.Message {
+	return Wrap(&Default{From: from, Raw: raw, ToA: toa})
+}
+
+// Draw draws message.
+func (d *Default) Draw(r *mondrian.Region) {
+	r.LPrintf("[%02d:%02d] ", d.ToA.Hour(), d.ToA.Minute())
+	r.Xbase = r.Cx
+	r.Printf("- %s - %s", d.From, d.Raw)
 }
