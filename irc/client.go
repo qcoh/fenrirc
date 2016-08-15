@@ -4,6 +4,7 @@ import (
 	"../config"
 	"bufio"
 	"crypto/tls"
+	"fmt"
 	"net"
 	"sync"
 	"time"
@@ -35,7 +36,7 @@ func NewClient(conf *config.Server, cmd chan<- func()) *Client {
 // Connect connects client to IRC network.
 func (c *Client) Connect() error {
 	var err error
-	if c.conf.SLL {
+	if c.conf.SSL {
 		c.conn, err = tls.Dial("tcp", c.conf.Host+":"+c.conf.Port, nil)
 	} else {
 		c.conn, err = net.Dial("tcp", c.conf.Host+":"+c.conf.Port)
@@ -57,7 +58,7 @@ func (c *Client) Connect() error {
 func (c *Client) Run() {
 	go func() {
 		c.wg.Add(1)
-		defer wg.Done()
+		defer c.wg.Done()
 
 		scanner := bufio.NewScanner(c.conn)
 		for scanner.Scan() {
@@ -72,10 +73,10 @@ func (c *Client) Run() {
 	loop:
 		for {
 			select {
-			case <-quit:
+			case <-c.quit:
 				break loop
 			case s := <-c.out:
-				c.conn.SetWriteDeadline(time.No().Add(time.Second))
+				c.conn.SetWriteDeadline(time.Now().Add(time.Second))
 				if _, err := c.conn.Write(s); err != nil {
 					// log error
 				}
