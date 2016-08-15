@@ -2,6 +2,7 @@ package irc
 
 import (
 	"../config"
+	"../msg"
 	"bufio"
 	"crypto/tls"
 	"fmt"
@@ -12,8 +13,9 @@ import (
 
 // Client represents a connection to an IRC network.
 type Client struct {
-	conn net.Conn
-	conf *config.Server
+	conn     net.Conn
+	conf     *config.Server
+	frontend Frontend
 
 	// run on ui goroutine
 	cmd chan<- func()
@@ -24,10 +26,11 @@ type Client struct {
 }
 
 // NewClient returns a client
-func NewClient(conf *config.Server, cmd chan<- func()) *Client {
+func NewClient(frontend Frontend, conf *config.Server, cmd chan<- func()) *Client {
 	return &Client{
-		conf: conf,
-		cmd:  cmd,
+		frontend: frontend,
+		conf:     conf,
+		cmd:      cmd,
 	}
 }
 
@@ -43,18 +46,18 @@ func (c *Client) Connect() error {
 		return err
 	}
 	if c.conf.Pass != "" {
-		c.Pprintf(c.conn, "PASS %s\r\n", c.conf.Pass)
+		c.Printf("PASS %s\r\n", c.conf.Pass)
 	}
-	c.Printf(c.conn, "NICK %s\r\n", c.conf.Nick)
-	c.Printf(c.conn, "USER %s * * :%s\r\n", c.conf.User, c.conf.Real)
+	c.Printf("NICK %s\r\n", c.conf.Nick)
+	c.Printf("USER %s * * :%s\r\n", c.conf.User, c.conf.Real)
 	return nil
 }
 
 // Printf sends a formatted string to server.
 func (c *Client) Printf(format string, a ...interface{}) {
 	c.conn.SetWriteDeadline(time.Now().Add(50 * time.Millisecond))
-	if _, err := fmt.Fprintf(format, a...); err != nil {
-		// TODO: handle error
+	if _, err := fmt.Fprintf(c.conn, format, a...); err != nil {
+		c.frontend.Logf("Timout sending last message")
 	}
 }
 
@@ -78,13 +81,13 @@ func (c *Client) Run() {
 	}()
 }
 
-func (c *Client) handleMessage(m message) {
+func (c *Client) handleMessage(m *message) {
 	switch m.Command {
 	case "PING":
 		// writing to conn is thread safe. still might be better to do this in Run.
 		c.Printf("PONG :%s\r\n", m.Trailing)
 	default:
-		// frontend.Server().Append(msg.NewDefault(...))
+		c.frontend.Server().Append(msg.NewDefault(m.From, m.Raw, m.ToA))
 	}
 }
 
