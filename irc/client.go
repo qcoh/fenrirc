@@ -15,8 +15,6 @@ type Client struct {
 	conn net.Conn
 	conf *config.Server
 
-	out chan []byte
-
 	// run on ui goroutine
 	cmd chan<- func()
 
@@ -45,13 +43,19 @@ func (c *Client) Connect() error {
 		return err
 	}
 	if c.conf.Pass != "" {
-		// TODO timeout
-		fmt.Fprintf(c.conn, "PASS %s\r\n", c.conf.Pass)
+		c.Pprintf(c.conn, "PASS %s\r\n", c.conf.Pass)
 	}
-	// TODO timeout
-	fmt.Fprintf(c.conn, "NICK %s\r\n", c.conf.Nick)
-	fmt.Fprintf(c.conn, "USER %s * * :%s\r\n", c.conf.User, c.conf.Real)
+	c.Printf(c.conn, "NICK %s\r\n", c.conf.Nick)
+	c.Printf(c.conn, "USER %s * * :%s\r\n", c.conf.User, c.conf.Real)
 	return nil
+}
+
+// Printf sends a formatted string to server.
+func (c *Client) Printf(format string, a ...interface{}) {
+	c.conn.SetWriteDeadline(time.Now().Add(50 * time.Millisecond))
+	if _, err := fmt.Fprintf(format, a...); err != nil {
+		// TODO: handle error
+	}
 }
 
 // Run spawns the read and write loops.
@@ -62,27 +66,26 @@ func (c *Client) Run() {
 
 		scanner := bufio.NewScanner(c.conn)
 		for scanner.Scan() {
-
-		}
-	}()
-
-	go func() {
-		c.wg.Add(1)
-		defer c.wg.Done()
-
-	loop:
-		for {
-			select {
-			case <-c.quit:
-				break loop
-			case s := <-c.out:
-				c.conn.SetWriteDeadline(time.Now().Add(time.Second))
-				if _, err := c.conn.Write(s); err != nil {
-					// log error
-				}
+			m, err := parse(scanner.Text())
+			if err != nil {
+				// handle error
+				continue
+			}
+			c.cmd <- func() {
+				c.handleMessage(m)
 			}
 		}
 	}()
+}
+
+func (c *Client) handleMessage(m message) {
+	switch m.Command {
+	case "PING":
+		// writing to conn is thread safe. still might be better to do this in Run.
+		c.Printf("PONG :%s\r\n", m.Trailing)
+	default:
+		// frontend.Server().Append(msg.NewDefault(...))
+	}
 }
 
 // Close closes the client.
