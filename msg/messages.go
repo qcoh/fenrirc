@@ -14,6 +14,11 @@ type Cached struct {
 	heightCache map[int]int
 }
 
+// Wrap returns a message with a height cache.
+func Wrap(m message) *Cached {
+	return &Cached{message: m, heightCache: make(map[int]int)}
+}
+
 // Height returns the height from the cache if it exists, otherwise computes, stores and returns it.
 func (cm *Cached) Height(width int) int {
 	if height, ok := cm.heightCache[width]; ok {

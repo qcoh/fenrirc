@@ -2,6 +2,7 @@ package main
 
 import (
 	"./mondrian"
+	"./msg"
 )
 
 var (
@@ -10,7 +11,7 @@ var (
 
 func init() {
 	firstMB = mondrian.NewMessageBuffer()
-	// TODO: fill with welcome msg
+	firstMB.Append(msg.Wrap(&msg.Simple{"ᚠᛖᚾᚱᛁᚱᚲ"}))
 }
 
 // NewMessageBuffer returns a *mondrian.MessageBuffer.
