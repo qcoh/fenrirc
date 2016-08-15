@@ -72,6 +72,7 @@ func (c *Client) Run() {
 			m, err := parse(scanner.Text())
 			if err != nil {
 				// handle error
+				c.frontend.Logf("Parsing error: %s", scanner.Text())
 				continue
 			}
 			c.cmd <- func() {
@@ -87,7 +88,7 @@ func (c *Client) handleMessage(m *message) {
 		// writing to conn is thread safe. still might be better to do this in Run.
 		c.Printf("PONG :%s\r\n", m.Trailing)
 	default:
-		c.frontend.Server().Append(msg.NewDefault(m.From, m.Raw, m.ToA))
+		c.frontend.Server().Append(msg.NewDefault(c.conf.Host, m.Raw, m.ToA))
 	}
 }
 

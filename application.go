@@ -1,7 +1,11 @@
 package main
 
 import (
+	"./config"
+	"./irc"
 	"./mondrian"
+	"./msg"
+	"fmt"
 	"github.com/nsf/termbox-go"
 )
 
@@ -9,7 +13,7 @@ import (
 type Application struct {
 	*mondrian.Box
 
-	current mondrian.InteractiveWidget
+	current *mondrian.MessageBuffer
 	status  *Status
 	prompt  *Prompt
 }
@@ -48,6 +52,22 @@ func (a *Application) Run() {
 	a.Resize(&mondrian.Region{Width: w, Height: h})
 	mondrian.Draw(a)
 
+	cmd := make(chan func())
+	conf := &config.Server{
+		Host: "irc.freenode.net",
+		Port: "6697",
+		Nick: "qcoh_",
+		User: "qcoh_",
+		Real: "qcoh_",
+		SSL:  true,
+	}
+	client := irc.NewClient(a, conf, cmd)
+	// connect already uses cmd and blocks until cmd is emptied
+	go func() {
+		client.Connect()
+		client.Run()
+	}()
+
 mainloop:
 	for {
 		select {
@@ -68,6 +88,18 @@ mainloop:
 					break mainloop
 				}
 			}
+		case f := <-cmd:
+			f()
 		}
 	}
+}
+
+// TODO: the following belong in their own frontend struct. I'm just testing if the previous work is correct.
+
+func (a *Application) Logf(format string, args ...interface{}) {
+	a.current.Append(msg.NewSimple(fmt.Sprintf(format, args...)))
+}
+
+func (a *Application) Server() irc.Appender {
+	return a.current
 }
