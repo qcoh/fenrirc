@@ -4,6 +4,10 @@ import (
 	"../mondrian"
 )
 
+var (
+	NewSimple = newSimple
+)
+
 type message interface {
 	Draw(*mondrian.Region)
 }
@@ -33,6 +37,11 @@ func (cm *Cached) Height(width int) int {
 // Simple displays text.
 type Simple struct {
 	Text string
+}
+
+// NewSimple constructs a simple message.
+func newSimple(text string) mondrian.Message {
+	return Wrap(&Simple{text})
 }
 
 // Draw draws the message.
