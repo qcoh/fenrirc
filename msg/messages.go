@@ -1,7 +1,7 @@
 package msg
 
 import (
-	"../mondrian"
+	"fenrirc/mondrian"
 	"time"
 )
 

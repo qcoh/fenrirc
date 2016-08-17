@@ -1,10 +1,10 @@
 package main
 
 import (
-	"./config"
-	"./irc"
-	"./mondrian"
-	"./msg"
+	"fenrirc/config"
+	"fenrirc/irc"
+	"fenrirc/mondrian"
+	"fenrirc/msg"
 	"fmt"
 	"github.com/nsf/termbox-go"
 )

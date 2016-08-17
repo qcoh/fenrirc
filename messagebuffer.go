@@ -1,8 +1,8 @@
 package main
 
 import (
-	"./mondrian"
-	"./msg"
+	"fenrirc/mondrian"
+	"fenrirc/msg"
 )
 
 var (

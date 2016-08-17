@@ -1,7 +1,7 @@
 package main
 
 import (
-	"./mondrian"
+	"fenrirc/mondrian"
 )
 
 func main() {

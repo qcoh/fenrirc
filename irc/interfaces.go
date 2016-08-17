@@ -1,7 +1,7 @@
 package irc
 
 import (
-	"../mondrian"
+	"fenrirc/mondrian"
 )
 
 type Appender interface {

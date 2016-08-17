@@ -1,7 +1,7 @@
 package main
 
 import (
-	"./mondrian"
+	"fenrirc/mondrian"
 )
 
 // Prompt wraps mondrian.Prompt.

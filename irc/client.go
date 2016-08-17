@@ -1,10 +1,10 @@
 package irc
 
 import (
-	"../config"
-	"../msg"
 	"bufio"
 	"crypto/tls"
+	"fenrirc/config"
+	"fenrirc/msg"
 	"fmt"
 	"net"
 	"sync"
