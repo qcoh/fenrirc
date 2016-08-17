@@ -57,8 +57,14 @@ func (c *Client) Connect() error {
 func (c *Client) Printf(format string, a ...interface{}) {
 	c.conn.SetWriteDeadline(time.Now().Add(50 * time.Millisecond))
 	if _, err := fmt.Fprintf(c.conn, format, a...); err != nil {
-		c.frontend.Logf("Timout sending last message")
+		c.cmd <- func() {
+			c.logf("Timout sending last message")
+		}
 	}
+}
+
+func (c *Client) logf(format string, a ...interface{}) {
+	c.frontend.Server().Append(msg.NewLog(fmt.Sprintf(format, a...), c.conf.Host, time.Now()))
 }
 
 // Run spawns the read and write loops.
@@ -72,7 +78,7 @@ func (c *Client) Run() {
 			m, err := parse(scanner.Text())
 			if err != nil {
 				// handle error
-				c.frontend.Logf("Parsing error: %s", scanner.Text())
+				c.logf("Parsing error: %s", scanner.Text())
 				continue
 			}
 			c.cmd <- func() {

@@ -4,8 +4,6 @@ import (
 	"fenrirc/config"
 	"fenrirc/irc"
 	"fenrirc/mondrian"
-	"fenrirc/msg"
-	"fmt"
 	"github.com/nsf/termbox-go"
 )
 
@@ -95,10 +93,6 @@ mainloop:
 }
 
 // TODO: the following belong in their own frontend struct. I'm just testing if the previous work is correct.
-
-func (a *Application) Logf(format string, args ...interface{}) {
-	a.current.Append(msg.NewSimple(fmt.Sprintf(format, args...)))
-}
 
 func (a *Application) Server() irc.Appender {
 	return a.current

@@ -12,5 +12,4 @@ type Frontend interface {
 	Server() Appender
 	//NewChannel(string) Appender
 	//Remove(Appender)
-	Logf(string, ...interface{})
 }

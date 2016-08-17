@@ -8,6 +8,7 @@ import (
 var (
 	NewSimple  = newSimple
 	NewDefault = newDefault
+	NewLog     = newLog
 )
 
 type message interface {
@@ -68,4 +69,22 @@ func (d *Default) Draw(r *mondrian.Region) {
 	r.LPrintf("[%02d:%02d] ", d.ToA.Hour(), d.ToA.Minute())
 	r.Xbase = r.Cx
 	r.Printf("- %s - %s", d.From, d.Raw)
+}
+
+// Log displays a warning/log.
+type Log struct {
+	Text string
+	From string
+	ToA  time.Time
+}
+
+func newLog(text, from string, toa time.Time) mondrian.Message {
+	return Wrap(&Log{Text: text, From: from, ToA: toa})
+}
+
+// Draw draws the message.
+func (l *Log) Draw(r *mondrian.Region) {
+	r.LPrintf("[%02d:%02d] ", l.ToA.Hour(), l.ToA.Minute())
+	r.Xbase = r.Cx
+	r.Printf(" - %s - %s", l.From, l.Text)
 }
