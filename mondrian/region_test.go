@@ -49,6 +49,7 @@ func TestComplicatedPrint(t *testing.T) {
 		t.Errorf("r.Cx = %d, should be 6", r.Cx)
 	}
 
+	r.Move(0, 0)
 	r.Printf("123456789ab")
 	if r.Cy != 1 {
 		t.Errorf("r.Cy = %d, should be 1 after newline", r.Cy)
@@ -66,7 +67,7 @@ func TestComplicatedPrint(t *testing.T) {
 		t.Errorf("r.Cx = %d, r.Cy = %d, should be (5,1)", r.Cx, r.Cy)
 	}
 
-	r.Move(0, 0)
+	r.Move(4, 0)
 	r.Xbase = 4
 	r.Printf("one two three")
 	// should print like this:
