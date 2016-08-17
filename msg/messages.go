@@ -6,9 +6,12 @@ import (
 )
 
 var (
-	NewSimple  = newSimple
+	// NewSimple is the constructor for `msg.Simple`.
+	NewSimple = newSimple
+	// NewDefault is the constructor for `msg.Default`.
 	NewDefault = newDefault
-	NewLog     = newLog
+	// NewLog is the constructor for `msg.Log`.
+	NewLog = newLog
 )
 
 type message interface {

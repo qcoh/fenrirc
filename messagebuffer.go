@@ -11,7 +11,7 @@ var (
 
 func init() {
 	firstMB = mondrian.NewMessageBuffer()
-	firstMB.Append(msg.Wrap(&msg.Simple{"ᚠᛖᚾᚱᛁᚱᚲ"}))
+	firstMB.Append(msg.NewSimple("ᚠᛖᚾᚱᛁᚱᚲ"))
 }
 
 // NewMessageBuffer returns a *mondrian.MessageBuffer.

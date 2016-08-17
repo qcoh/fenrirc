@@ -40,7 +40,7 @@ func TestClear(t *testing.T) {
 	}
 }
 
-func TestcomplicatedPrint(t *testing.T) {
+func TestComplicatedPrint(t *testing.T) {
 	SetMockUI(10, 100)
 	r := &Region{Width: 10, Height: 100}
 

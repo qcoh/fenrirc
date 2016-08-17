@@ -17,7 +17,7 @@ type message struct {
 }
 
 var (
-	malformed error = errors.New("Malformed message")
+	errMalformed = errors.New("Malformed message")
 )
 
 // See: http://calebdelnay.com/blog/2010/11/parsing-the-irc-message-format-as-a-client
@@ -28,7 +28,7 @@ func parse(raw string) (*message, error) {
 	if strings.HasPrefix(raw, ":") {
 		prefixEnd = strings.Index(raw, " ")
 		if prefixEnd < 0 {
-			return nil, malformed
+			return nil, errMalformed
 		}
 		ret.Prefix = raw[1:prefixEnd]
 	}
@@ -44,7 +44,7 @@ func parse(raw string) (*message, error) {
 	if len(cmdparams) > 0 {
 		ret.Command, ret.Params = cmdparams[0], cmdparams[1:]
 	} else {
-		return nil, malformed
+		return nil, errMalformed
 	}
 	return ret, nil
 }

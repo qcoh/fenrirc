@@ -92,8 +92,7 @@ mainloop:
 	}
 }
 
-// TODO: the following belong in their own frontend struct. I'm just testing if the previous work is correct.
-
+// Server TODO: the following belong in their own frontend struct. I'm just testing if the previous work is correct.
 func (a *Application) Server() irc.Appender {
 	return a.current
 }
