@@ -53,14 +53,25 @@ func (c *Client) Connect() error {
 	return nil
 }
 
+// Write sends p to the server.
+func (c *Client) Write(p []byte) (int, error) {
+	// TODO: use a channel to make this somewhat async
+	c.conn.SetWriteDeadline(time.Now().Add(50 * time.Millisecond))
+	n, err := c.conn.Write(p)
+	if err != nil {
+		// TODO: awkward. want to call this function from different goroutines.
+		go func() {
+			c.cmd <- func() {
+				c.logf("Timeout sending last message")
+			}
+		}()
+	}
+	return n, err
+}
+
 // Printf sends a formatted string to server.
 func (c *Client) Printf(format string, a ...interface{}) {
-	c.conn.SetWriteDeadline(time.Now().Add(50 * time.Millisecond))
-	if _, err := fmt.Fprintf(c.conn, format, a...); err != nil {
-		c.cmd <- func() {
-			c.logf("Timout sending last message")
-		}
-	}
+	fmt.Fprintf(c.conn, format, a...)
 }
 
 func (c *Client) logf(format string, a ...interface{}) {

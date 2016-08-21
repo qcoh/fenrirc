@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fenrirc/irc"
+	"io"
 )
 
 // A Handler is the interface implemented by everything reacting to user (prompt) input.
@@ -11,7 +11,7 @@ type Handler interface {
 
 // ServerHandler sends user input to the server.
 type ServerHandler struct {
-	client *irc.Client
+	client io.Writer
 	next   Handler
 }
 
@@ -28,7 +28,7 @@ func (sh *ServerHandler) Handle(cmd *Command) {
 
 // ChannelHandler sends user input relevant to a channel to the server.
 type ChannelHandler struct {
-	client *irc.Client
+	client io.Writer
 	name   string
 	next   Handler
 }
