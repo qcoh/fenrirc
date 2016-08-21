@@ -14,6 +14,8 @@ type Application struct {
 	current *mondrian.MessageBuffer
 	status  *Status
 	prompt  *Prompt
+
+	quit bool
 }
 
 // NewApplication is the constructor.
@@ -22,8 +24,9 @@ func NewApplication() *Application {
 		Box:     mondrian.NewBox(),
 		current: NewMessageBuffer(),
 		status:  NewStatus(),
-		prompt:  NewPrompt(),
+		quit:    false,
 	}
+	ret.prompt = NewPrompt(ret)
 	ret.Children = []mondrian.Widget{ret.current, ret.status, ret.prompt}
 	ret.ResizeFunc = func(r *mondrian.Region) []*mondrian.Region {
 		return []*mondrian.Region{
@@ -33,6 +36,15 @@ func NewApplication() *Application {
 		}
 	}
 	return ret
+}
+
+// Handle responds to "global" user commands.
+func (a *Application) Handle(cmd *Command) {
+	switch cmd.Command {
+	case "QUIT":
+		// TODO: clean shutdown
+		a.quit = true
+	}
 }
 
 // Run runs the application.
@@ -66,8 +78,7 @@ func (a *Application) Run() {
 		client.Run()
 	}()
 
-mainloop:
-	for {
+	for !a.quit {
 		select {
 		case ev := <-event:
 			if ev.Type == termbox.EventResize {
@@ -83,7 +94,7 @@ mainloop:
 				}
 
 				if ev.Key == termbox.KeyCtrlQ {
-					break mainloop
+					a.quit = true
 				}
 			}
 		case f := <-cmd:
