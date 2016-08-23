@@ -63,6 +63,10 @@ func (a *Application) Run() {
 	mondrian.Draw(a)
 
 	cmd := make(chan func())
+	runUI := func(f func()) {
+		cmd <- f
+	}
+
 	conf := &config.Server{
 		Host: "irc.freenode.net",
 		Port: "6697",
@@ -71,7 +75,7 @@ func (a *Application) Run() {
 		Real: "qcoh_",
 		SSL:  true,
 	}
-	client := irc.NewClient(a, conf, cmd)
+	client := irc.NewClient(a, conf, runUI)
 	// connect already uses cmd and blocks until cmd is emptied
 	go func() {
 		client.Connect()

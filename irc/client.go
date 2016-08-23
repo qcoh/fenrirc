@@ -18,7 +18,7 @@ type Client struct {
 	frontend Frontend
 
 	// run on ui goroutine
-	cmd chan<- func()
+	runUI func(func())
 
 	// clean shutdown
 	wg   sync.WaitGroup
@@ -26,11 +26,11 @@ type Client struct {
 }
 
 // NewClient returns a client
-func NewClient(frontend Frontend, conf *config.Server, cmd chan<- func()) *Client {
+func NewClient(frontend Frontend, conf *config.Server, runUI func(func())) *Client {
 	return &Client{
 		frontend: frontend,
 		conf:     conf,
-		cmd:      cmd,
+		runUI:    runUI,
 	}
 }
 
@@ -59,12 +59,7 @@ func (c *Client) Write(p []byte) (int, error) {
 	c.conn.SetWriteDeadline(time.Now().Add(50 * time.Millisecond))
 	n, err := c.conn.Write(p)
 	if err != nil {
-		// TODO: awkward. want to call this function from different goroutines.
-		go func() {
-			c.cmd <- func() {
-				c.logf("Timeout sending last message")
-			}
-		}()
+		c.logf("Timeout sending last message")
 	}
 	return n, err
 }
@@ -75,7 +70,9 @@ func (c *Client) Printf(format string, a ...interface{}) {
 }
 
 func (c *Client) logf(format string, a ...interface{}) {
-	c.frontend.Server().Append(msg.NewLog(fmt.Sprintf(format, a...), c.conf.Host, time.Now()))
+	c.runUI(func() {
+		c.frontend.Server().Append(msg.NewLog(fmt.Sprintf(format, a...), c.conf.Host, time.Now()))
+	})
 }
 
 // Run spawns the read and write loops.
@@ -92,9 +89,9 @@ func (c *Client) Run() {
 				c.logf("Parsing error: %s", scanner.Text())
 				continue
 			}
-			c.cmd <- func() {
+			c.runUI(func() {
 				c.handleMessage(m)
-			}
+			})
 		}
 	}()
 }
