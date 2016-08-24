@@ -4,6 +4,7 @@ import (
 	"fenrirc/config"
 	"fenrirc/irc"
 	"fenrirc/mondrian"
+	"flag"
 	"github.com/nsf/termbox-go"
 )
 
@@ -11,9 +12,10 @@ import (
 type Application struct {
 	*mondrian.Box
 
-	current *mondrian.MessageBuffer
-	status  *Status
-	prompt  *Prompt
+	serverWindow *mondrian.MessageBuffer
+	current      mondrian.InteractiveWidget
+	status       *Status
+	prompt       *Prompt
 
 	quit  bool
 	cmd   chan func()
@@ -21,18 +23,24 @@ type Application struct {
 	runUI func(func())
 
 	next Handler
+
+	frontends map[string]*Frontend
+	clients   map[string]*irc.Client
 }
 
 // NewApplication is the constructor.
 func NewApplication() *Application {
 	ret := &Application{
-		Box:     mondrian.NewBox(),
-		current: NewMessageBuffer(),
-		status:  NewStatus(),
-		quit:    false,
-		cmd:     make(chan func()),
-		event:   make(chan termbox.Event),
+		Box:          mondrian.NewBox(),
+		serverWindow: NewMessageBuffer(),
+		status:       NewStatus(),
+		quit:         false,
+		cmd:          make(chan func()),
+		event:        make(chan termbox.Event),
+		frontends:    make(map[string]*Frontend),
+		clients:      make(map[string]*irc.Client),
 	}
+	ret.current = ret.serverWindow
 	ret.prompt = NewPrompt(ret)
 	ret.Children = []mondrian.Widget{ret.current, ret.status, ret.prompt}
 	ret.ResizeFunc = func(r *mondrian.Region) []*mondrian.Region {
@@ -64,11 +72,46 @@ func (a *Application) Handle(cmd *Command) {
 	case "QUIT":
 		// TODO: clean shutdown
 		a.quit = true
+	case "CONNECT":
+		// well, flag does the job for now
+		fs := flag.NewFlagSet(cmd.Command, flag.ContinueOnError)
+		conf := &config.Server{}
+		fs.StringVar(&conf.Host, "Host", "", "")
+		fs.StringVar(&conf.Port, "Port", "", "")
+		fs.StringVar(&conf.Nick, "Nick", "", "")
+		fs.StringVar(&conf.User, "User", "", "")
+		fs.StringVar(&conf.Real, "Real", "", "")
+		fs.StringVar(&conf.Pass, "Pass", "", "")
+		fs.BoolVar(&conf.SSL, "SSL", false, "")
+		if err := fs.Parse(cmd.Params); err != nil {
+			// TODO: log error
+		}
+		a.connect(conf)
+
 	default:
 		if a.next != nil {
 			a.next.Handle(cmd)
 		}
 	}
+}
+
+func (a *Application) connect(conf *config.Server) {
+	if _, ok := a.clients[conf.Host]; ok {
+		// reconnect?
+		return
+	}
+	f := NewFrontend(a.serverWindow)
+	a.frontends[conf.Host] = f
+	c := irc.NewClient(f, conf, a.runUI)
+	a.clients[conf.Host] = c
+
+	go func() {
+		if err := c.Connect(); err != nil {
+			// TODO: log error
+		} else {
+			c.Run()
+		}
+	}()
 }
 
 // Run runs the application.
@@ -77,21 +120,6 @@ func (a *Application) Run() {
 	a.SetVisibility(true)
 	a.Resize(&mondrian.Region{Width: w, Height: h})
 	mondrian.Draw(a)
-
-	conf := &config.Server{
-		Host: "irc.freenode.net",
-		Port: "6697",
-		Nick: "qcoh_",
-		User: "qcoh_",
-		Real: "qcoh_",
-		SSL:  true,
-	}
-	client := irc.NewClient(a, conf, a.runUI)
-	// connect already uses cmd and blocks until cmd is emptied
-	go func() {
-		client.Connect()
-		client.Run()
-	}()
 
 	for !a.quit {
 		select {
@@ -116,9 +144,4 @@ func (a *Application) Run() {
 			f()
 		}
 	}
-}
-
-// Server TODO: the following belong in their own frontend struct. I'm just testing if the previous work is correct.
-func (a *Application) Server() irc.Appender {
-	return a.current
 }
