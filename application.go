@@ -15,7 +15,10 @@ type Application struct {
 	status  *Status
 	prompt  *Prompt
 
-	quit bool
+	quit  bool
+	cmd   chan func()
+	event chan termbox.Event
+	runUI func(func())
 }
 
 // NewApplication is the constructor.
@@ -25,6 +28,8 @@ func NewApplication() *Application {
 		current: NewMessageBuffer(),
 		status:  NewStatus(),
 		quit:    false,
+		cmd:     make(chan func()),
+		event:   make(chan termbox.Event),
 	}
 	ret.prompt = NewPrompt(ret)
 	ret.Children = []mondrian.Widget{ret.current, ret.status, ret.prompt}
@@ -35,6 +40,19 @@ func NewApplication() *Application {
 			{X: r.X, Y: r.Y + r.Height - 1, Width: r.Width, Height: 1},
 		}
 	}
+
+	// TODO: clean shutdown
+	go func() {
+		for {
+			ret.event <- mondrian.PollEvent()
+		}
+	}()
+	ret.runUI = func(f func()) {
+		go func() {
+			ret.cmd <- f
+		}()
+	}
+
 	return ret
 }
 
@@ -49,23 +67,10 @@ func (a *Application) Handle(cmd *Command) {
 
 // Run runs the application.
 func (a *Application) Run() {
-	event := make(chan termbox.Event)
-	go func() {
-		for {
-			// TODO clean shutdown
-			event <- mondrian.PollEvent()
-		}
-	}()
-
 	w, h := mondrian.Size()
 	a.SetVisibility(true)
 	a.Resize(&mondrian.Region{Width: w, Height: h})
 	mondrian.Draw(a)
-
-	cmd := make(chan func())
-	runUI := func(f func()) {
-		cmd <- f
-	}
 
 	conf := &config.Server{
 		Host: "irc.freenode.net",
@@ -75,7 +80,7 @@ func (a *Application) Run() {
 		Real: "qcoh_",
 		SSL:  true,
 	}
-	client := irc.NewClient(a, conf, runUI)
+	client := irc.NewClient(a, conf, a.runUI)
 	// connect already uses cmd and blocks until cmd is emptied
 	go func() {
 		client.Connect()
@@ -84,7 +89,7 @@ func (a *Application) Run() {
 
 	for !a.quit {
 		select {
-		case ev := <-event:
+		case ev := <-a.event:
 			if ev.Type == termbox.EventResize {
 				mondrian.Sync()
 				a.Resize(&mondrian.Region{Width: ev.Width, Height: ev.Height})
@@ -101,7 +106,7 @@ func (a *Application) Run() {
 					a.quit = true
 				}
 			}
-		case f := <-cmd:
+		case f := <-a.cmd:
 			f()
 		}
 	}
