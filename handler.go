@@ -12,17 +12,12 @@ type Handler interface {
 // ServerHandler sends user input to the server.
 type ServerHandler struct {
 	client io.Writer
-	next   Handler
 }
 
 // Handle reacts to a command.
 func (sh *ServerHandler) Handle(cmd *Command) {
 	switch cmd.Command {
 	case "WHOIS":
-	default:
-		if sh.next != nil {
-			sh.next.Handle(cmd)
-		}
 	}
 }
 

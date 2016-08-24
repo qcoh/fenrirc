@@ -19,6 +19,8 @@ type Application struct {
 	cmd   chan func()
 	event chan termbox.Event
 	runUI func(func())
+
+	next Handler
 }
 
 // NewApplication is the constructor.
@@ -62,6 +64,10 @@ func (a *Application) Handle(cmd *Command) {
 	case "QUIT":
 		// TODO: clean shutdown
 		a.quit = true
+	default:
+		if a.next != nil {
+			a.next.Handle(cmd)
+		}
 	}
 }
 
