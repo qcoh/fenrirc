@@ -17,6 +17,8 @@ type Client struct {
 	conf     *config.Server
 	frontend Frontend
 
+	channels map[string]Appender
+
 	// run on ui goroutine
 	runUI func(func())
 
@@ -31,6 +33,7 @@ func NewClient(frontend Frontend, conf *config.Server, runUI func(func())) *Clie
 		frontend: frontend,
 		conf:     conf,
 		runUI:    runUI,
+		channels: make(map[string]Appender),
 	}
 }
 
@@ -101,6 +104,7 @@ func (c *Client) handleMessage(m *message) {
 	case "PING":
 		// writing to conn is thread safe. still might be better to do this in Run.
 		c.Printf("PONG :%s\r\n", m.Trailing)
+		fallthrough
 	default:
 		c.frontend.Server().Append(msg.NewDefault(c.conf.Host, m.Raw, m.ToA))
 	}

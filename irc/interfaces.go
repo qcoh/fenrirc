@@ -12,6 +12,6 @@ type Appender interface {
 // Frontend is an interface for the widgets corresponding to a IRC connection.
 type Frontend interface {
 	Server() Appender
-	//NewChannel(string) Appender
+	NewChannel(string) Appender
 	//Remove(Appender)
 }

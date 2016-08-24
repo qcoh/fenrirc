@@ -91,6 +91,7 @@ func (a *Application) Handle(cmd *Command) {
 		a.connect(conf)
 
 	default:
+		// should check if current window is a server or channel, then use the appropriate handler
 		if a.next != nil {
 			a.next.Handle(cmd)
 		}
