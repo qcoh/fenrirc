@@ -6,6 +6,7 @@ import (
 	"fenrirc/mondrian"
 	"flag"
 	"github.com/nsf/termbox-go"
+	"io/ioutil"
 )
 
 // Application pulls everything together.
@@ -75,6 +76,7 @@ func (a *Application) Handle(cmd *Command) {
 	case "CONNECT":
 		// well, flag does the job for now
 		fs := flag.NewFlagSet(cmd.Command, flag.ContinueOnError)
+		fs.SetOutput(ioutil.Discard)
 		conf := &config.Server{}
 		fs.StringVar(&conf.Host, "Host", "", "")
 		fs.StringVar(&conf.Port, "Port", "", "")
