@@ -13,10 +13,9 @@ import (
 type Application struct {
 	*mondrian.Box
 
-	serverWindow *mondrian.MessageBuffer
-	current      mondrian.InteractiveWidget
-	status       *Status
-	prompt       *Prompt
+	current mondrian.InteractiveWidget
+	status  *Status
+	prompt  *Prompt
 
 	quit  bool
 	cmd   chan func()
@@ -25,23 +24,23 @@ type Application struct {
 
 	next Handler
 
-	frontends map[string]*Frontend
+	frontends []*Frontend
+	findex    int
 	clients   map[string]*irc.Client
 }
 
 // NewApplication is the constructor.
 func NewApplication() *Application {
 	ret := &Application{
-		Box:          mondrian.NewBox(),
-		serverWindow: NewMessageBuffer(),
-		status:       NewStatus(),
-		quit:         false,
-		cmd:          make(chan func()),
-		event:        make(chan termbox.Event),
-		frontends:    make(map[string]*Frontend),
-		clients:      make(map[string]*irc.Client),
+		Box:       mondrian.NewBox(),
+		current:   firstMB,
+		status:    NewStatus(),
+		quit:      false,
+		cmd:       make(chan func()),
+		event:     make(chan termbox.Event),
+		frontends: []*Frontend{},
+		clients:   make(map[string]*irc.Client),
 	}
-	ret.current = ret.serverWindow
 	ret.prompt = NewPrompt(ret)
 	ret.Children = []mondrian.Widget{ret.current, ret.status, ret.prompt}
 	ret.ResizeFunc = func(r *mondrian.Region) []*mondrian.Region {
@@ -100,11 +99,11 @@ func (a *Application) Handle(cmd *Command) {
 
 func (a *Application) connect(conf *config.Server) {
 	if _, ok := a.clients[conf.Host]; ok {
-		// reconnect?
+		// TODO: reconnect?
 		return
 	}
 	f := NewFrontend(conf.Host)
-	a.frontends[conf.Host] = f
+	a.frontends = append(a.frontends, f)
 	c := irc.NewClient(f, conf, a.runUI)
 	a.clients[conf.Host] = c
 
@@ -115,6 +114,52 @@ func (a *Application) connect(conf *config.Server) {
 			c.Run()
 		}
 	}()
+}
+
+func (a *Application) setCurrent(w mondrian.InteractiveWidget) {
+	a.current.SetVisibility(false)
+	a.current = w
+	a.Box.Children[0] = w
+	a.current.SetVisibility(true)
+	a.Resize(a.Region)
+}
+
+// HandleKey handles user input.
+func (a *Application) HandleKey(ev termbox.Event) {
+	var w mondrian.InteractiveWidget
+	redraw := true
+	switch ev.Key {
+	case termbox.KeyCtrlQ:
+		a.quit = true
+		redraw = false
+		return
+	case termbox.KeyCtrlN:
+		if len(a.frontends) == 0 {
+			return
+		}
+		if w = a.frontends[a.findex].next(); w == nil {
+			a.findex = (a.findex + 1) % len(a.frontends)
+			w = a.frontends[a.findex].first()
+		}
+		a.setCurrent(w)
+	case termbox.KeyCtrlP:
+		if len(a.frontends) == 0 {
+			return
+		}
+		if w = a.frontends[a.findex].prev(); w == nil {
+			a.findex = ((a.findex-1)%len(a.frontends) + len(a.frontends)) % len(a.frontends)
+			w = a.frontends[a.findex].last()
+		}
+		a.setCurrent(w)
+	default:
+		redraw = false
+		a.prompt.HandleKey(ev)
+		a.current.HandleKey(ev)
+	}
+	if redraw {
+		a.Resize(a.Region)
+		mondrian.Draw(a)
+	}
 }
 
 // Run runs the application.
@@ -132,16 +177,7 @@ func (a *Application) Run() {
 				a.Resize(&mondrian.Region{Width: ev.Width, Height: ev.Height})
 				mondrian.Draw(a)
 			} else if ev.Type == termbox.EventKey {
-				if ev.Ch != 0 {
-					a.prompt.HandleKey(ev)
-				} else {
-					a.prompt.HandleKey(ev)
-					a.current.HandleKey(ev)
-				}
-
-				if ev.Key == termbox.KeyCtrlQ {
-					a.quit = true
-				}
+				a.HandleKey(ev)
 			}
 		case f := <-a.cmd:
 			f()
