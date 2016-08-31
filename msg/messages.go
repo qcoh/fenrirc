@@ -2,6 +2,7 @@ package msg
 
 import (
 	"fenrirc/mondrian"
+	"strings"
 	"time"
 )
 
@@ -12,6 +13,8 @@ var (
 	NewDefault = newDefault
 	// NewLog is the constructor for `msg.Log`.
 	NewLog = newLog
+	// NewJoin is the constructor for `msg.Join`.
+	NewJoin = newJoin
 )
 
 type message interface {
@@ -90,4 +93,30 @@ func (l *Log) Draw(r *mondrian.Region) {
 	r.LPrintf("[%02d:%02d] ", l.ToA.Hour(), l.ToA.Minute())
 	r.Xbase = r.Cx
 	r.Printf(" - %s - %s", l.From, l.Text)
+}
+
+// Join displays a join message.
+type Join struct {
+	Nick    string
+	Channel string
+	ToA     time.Time
+}
+
+func newJoin(prefix string, params []string, trailing string, toa time.Time) mondrian.Message {
+	nick := prefix
+	if nickEnd := strings.Index(prefix, "!"); nickEnd != -1 {
+		nick = prefix[0:nickEnd]
+	}
+	channel := trailing
+	if len(params) > 0 {
+		channel = params[0]
+	}
+	return Wrap(&Join{Nick: nick, Channel: channel, ToA: toa})
+}
+
+// Draw draws the message.
+func (j *Join) Draw(r *mondrian.Region) {
+	r.LPrintf("[%02d:%02d:] ", j.ToA.Hour(), j.ToA.Minute())
+	r.Xbase = r.Cx
+	r.Printf("%s has joined %s", j.Nick, j.Channel)
 }
