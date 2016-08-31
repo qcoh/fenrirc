@@ -103,7 +103,7 @@ func (a *Application) connect(conf *config.Server) {
 		// reconnect?
 		return
 	}
-	f := NewFrontend(a.serverWindow)
+	f := NewFrontend(conf.Host)
 	a.frontends[conf.Host] = f
 	c := irc.NewClient(f, conf, a.runUI)
 	a.clients[conf.Host] = c

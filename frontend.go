@@ -5,25 +5,36 @@ import (
 	"fenrirc/mondrian"
 )
 
+type namedView struct {
+	view interface {
+		irc.Appender
+		mondrian.InteractiveWidget
+	}
+	name string
+}
+
 // Frontend comprises the server and channel windows of an IRC connection.
 type Frontend struct {
-	serverWindow *mondrian.MessageBuffer
-	channels     []*mondrian.MessageBuffer
+	views []*namedView
 }
 
 // NewFrontend constructs a Frontend.
-func NewFrontend(serverWindow *mondrian.MessageBuffer) *Frontend {
-	return &Frontend{serverWindow: serverWindow, channels: []*mondrian.MessageBuffer{}}
+func NewFrontend(host string) *Frontend {
+	return &Frontend{views: []*namedView{{view: NewMessageBuffer(), name: host}}}
 }
 
 // Server returns the server window.
 func (f *Frontend) Server() irc.Appender {
-	return f.serverWindow
+	return f.views[0].view
 }
 
 // NewChannel returns a channel window.
 func (f *Frontend) NewChannel(name string) irc.Appender {
-	// name?
-	f.channels = append(f.channels, NewMessageBuffer())
-	return f.channels[len(f.channels)-1]
+	for _, v := range f.views {
+		if v.name == name {
+			return v.view
+		}
+	}
+	f.views = append(f.views, &namedView{view: NewMessageBuffer(), name: name})
+	return f.views[len(f.views)-1].view
 }
