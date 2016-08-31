@@ -30,14 +30,14 @@ func (f *Frontend) Server() irc.Appender {
 }
 
 // NewChannel returns a channel window.
-func (f *Frontend) NewChannel(name string) irc.Appender {
+func (f *Frontend) NewChannel(name string) irc.Channel {
 	for _, v := range f.views {
 		if v.name == name {
-			return v.view
+			return v.view.(irc.Channel) // ugh
 		}
 	}
-	f.views = append(f.views, &namedView{view: NewMessageBuffer(), name: name})
-	return f.views[len(f.views)-1].view
+	f.views = append(f.views, &namedView{view: NewChannel(), name: name})
+	return f.views[len(f.views)-1].view.(irc.Channel) // ugh^2
 }
 
 func (f *Frontend) next() mondrian.InteractiveWidget {
