@@ -17,7 +17,7 @@ type Client struct {
 	conf     *config.Server
 	frontend Frontend
 
-	channels map[string]Appender
+	channels map[string]Channel
 
 	// run on ui goroutine
 	runUI func(func())
@@ -33,7 +33,7 @@ func NewClient(frontend Frontend, conf *config.Server, runUI func(func())) *Clie
 		frontend: frontend,
 		conf:     conf,
 		runUI:    runUI,
-		channels: make(map[string]Appender),
+		channels: make(map[string]Channel),
 	}
 }
 
@@ -101,6 +101,20 @@ func (c *Client) Run() {
 
 func (c *Client) handleMessage(m *message) {
 	switch m.Command {
+	case "JOIN":
+		var name string
+		if len(m.Params) > 0 {
+			name = m.Params[0]
+		} else {
+			name = m.Trailing
+		}
+		var ch Channel
+		var ok bool
+		if ch, ok = c.channels[name]; !ok {
+			ch = c.frontend.NewChannel(name)
+			c.channels[name] = ch
+		}
+		ch.Append(msg.NewJoin(m.Prefix, m.Params, m.Trailing, m.ToA))
 	case "PING":
 		// writing to conn is thread safe. still might be better to do this in Run.
 		c.Printf("PONG :%s\r\n", m.Trailing)
