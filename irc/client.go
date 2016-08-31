@@ -99,8 +99,21 @@ func (c *Client) Run() {
 	}()
 }
 
+// returns the channel with name given by m.Params[n] if it exists, otherwise the server appender.
+func (c *Client) appenderByParam(m *message, n int) Appender {
+	if len(m.Params) <= n {
+		return c.frontend.Server()
+	}
+	if ch, ok := c.channels[m.Params[n]]; ok {
+		return ch
+	}
+	return c.frontend.Server()
+}
+
 func (c *Client) handleMessage(m *message) {
 	switch m.Command {
+	case "PRIVMSG":
+		c.appenderByParam(m, 0).Append(msg.NewPrivate(m.Prefix, m.Trailing, m.ToA))
 	case "JOIN":
 		var name string
 		if len(m.Params) > 0 {
@@ -114,7 +127,7 @@ func (c *Client) handleMessage(m *message) {
 			ch = c.frontend.NewChannel(name)
 			c.channels[name] = ch
 		}
-		ch.Append(msg.NewJoin(m.Prefix, m.Params, m.Trailing, m.ToA))
+		ch.Append(msg.NewJoin(m.Prefix, name, m.ToA))
 	case "PING":
 		// writing to conn is thread safe. still might be better to do this in Run.
 		c.Printf("PONG :%s\r\n", m.Trailing)

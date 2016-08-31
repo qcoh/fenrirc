@@ -15,6 +15,8 @@ var (
 	NewLog = newLog
 	// NewJoin is the constructor for `msg.Join`.
 	NewJoin = newJoin
+	// NewPrivate is the constructor for `msg.Private`.
+	NewPrivate = newPrivate
 )
 
 type message interface {
@@ -95,6 +97,13 @@ func (l *Log) Draw(r *mondrian.Region) {
 	r.Printf(" - %s - %s", l.From, l.Text)
 }
 
+func nickFromPrefix(prefix string) string {
+	if nickEnd := strings.Index(prefix, "!"); nickEnd != -1 {
+		return prefix[0:nickEnd]
+	}
+	return prefix
+}
+
 // Join displays a join message.
 type Join struct {
 	Nick    string
@@ -102,16 +111,8 @@ type Join struct {
 	ToA     time.Time
 }
 
-func newJoin(prefix string, params []string, trailing string, toa time.Time) mondrian.Message {
-	nick := prefix
-	if nickEnd := strings.Index(prefix, "!"); nickEnd != -1 {
-		nick = prefix[0:nickEnd]
-	}
-	channel := trailing
-	if len(params) > 0 {
-		channel = params[0]
-	}
-	return Wrap(&Join{Nick: nick, Channel: channel, ToA: toa})
+func newJoin(prefix string, name string, toa time.Time) mondrian.Message {
+	return Wrap(&Join{Nick: nickFromPrefix(prefix), Channel: name, ToA: toa})
 }
 
 // Draw draws the message.
@@ -119,4 +120,23 @@ func (j *Join) Draw(r *mondrian.Region) {
 	r.LPrintf("[%02d:%02d:] ", j.ToA.Hour(), j.ToA.Minute())
 	r.Xbase = r.Cx
 	r.Printf("%s has joined %s", j.Nick, j.Channel)
+}
+
+// Private displays a private message. (All messages to channels are private messages!)
+type Private struct {
+	Nick    string
+	Content string
+	ToA     time.Time
+}
+
+func newPrivate(prefix string, content string, toa time.Time) mondrian.Message {
+	return Wrap(&Private{Nick: nickFromPrefix(prefix), Content: content, ToA: toa})
+}
+
+// Draw draws the message.
+func (p *Private) Draw(r *mondrian.Region) {
+	r.LPrintf("[%02d:%02d] ", p.ToA.Hour(), p.ToA.Minute())
+	r.Xbase = r.Cx
+	r.LPrintf("<%s> ", p.Nick)
+	r.Printf("%s", p.Content)
 }
