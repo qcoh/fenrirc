@@ -22,8 +22,6 @@ type Application struct {
 	event chan termbox.Event
 	runUI func(func())
 
-	next Handler
-
 	frontends []*Frontend
 	findex    int
 	clients   map[string]*irc.Client
@@ -90,9 +88,8 @@ func (a *Application) Handle(cmd *Command) {
 		a.connect(conf)
 
 	default:
-		// should check if current window is a server or channel, then use the appropriate handler
-		if a.next != nil {
-			a.next.Handle(cmd)
+		if h, ok := a.current.(Handler); ok {
+			h.Handle(cmd)
 		}
 	}
 }
@@ -102,10 +99,12 @@ func (a *Application) connect(conf *config.Server) {
 		// TODO: reconnect?
 		return
 	}
-	f := NewFrontend(conf.Host)
-	a.frontends = append(a.frontends, f)
-	c := irc.NewClient(f, conf, a.runUI)
+
+	c := irc.NewClient(conf, a.runUI)
 	a.clients[conf.Host] = c
+	f := NewFrontend(conf, c)
+	a.frontends = append(a.frontends, f)
+	c.Frontend = f
 
 	go func() {
 		if err := c.Connect(); err != nil {

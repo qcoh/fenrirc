@@ -2,7 +2,9 @@ package main
 
 import (
 	"fenrirc/mondrian"
+	"fmt"
 	"github.com/nsf/termbox-go"
+	"io"
 )
 
 type topic struct {
@@ -29,14 +31,21 @@ type Channel struct {
 
 	t  *topic
 	mb *mondrian.MessageBuffer
+
+	serverHandler Handler
+	client        io.Writer
+	name          string
 }
 
 // NewChannel constructs a channel.
-func NewChannel() *Channel {
+func NewChannel(serverHandler Handler, client io.Writer, name string) *Channel {
 	ret := &Channel{
-		Box: mondrian.NewBox(),
-		t:   &topic{},
-		mb:  NewMessageBuffer(),
+		Box:           mondrian.NewBox(),
+		t:             &topic{},
+		mb:            NewMessageBuffer(),
+		serverHandler: serverHandler,
+		client:        client,
+		name:          name,
 	}
 	ret.Children = []mondrian.Widget{ret.t, ret.mb}
 	ret.ResizeFunc = func(r *mondrian.Region) []*mondrian.Region {
@@ -62,4 +71,17 @@ func (c *Channel) Append(msg mondrian.Message) {
 // HandleKey forwards ev to messagebuffer.
 func (c *Channel) HandleKey(ev termbox.Event) {
 	c.mb.HandleKey(ev)
+}
+
+// Handle handles user (prompt) input.
+func (c *Channel) Handle(cmd *Command) {
+	switch cmd.Command {
+	case "":
+		fmt.Fprintf(c.client, "PRIVMSG %s :%s\r\n", c.name, cmd.Raw)
+		// TODO: notify that this msg was sent
+	default:
+		if c.serverHandler != nil {
+			c.serverHandler.Handle(cmd)
+		}
+	}
 }

@@ -15,7 +15,7 @@ import (
 type Client struct {
 	conn     net.Conn
 	conf     *config.Server
-	frontend Frontend
+	Frontend Frontend
 
 	channels map[string]Channel
 
@@ -28,9 +28,8 @@ type Client struct {
 }
 
 // NewClient returns a client
-func NewClient(frontend Frontend, conf *config.Server, runUI func(func())) *Client {
+func NewClient(conf *config.Server, runUI func(func())) *Client {
 	return &Client{
-		frontend: frontend,
 		conf:     conf,
 		runUI:    runUI,
 		channels: make(map[string]Channel),
@@ -74,7 +73,7 @@ func (c *Client) Printf(format string, a ...interface{}) {
 
 func (c *Client) logf(format string, a ...interface{}) {
 	c.runUI(func() {
-		c.frontend.Server().Append(msg.NewLog(fmt.Sprintf(format, a...), c.conf.Host, time.Now()))
+		c.Frontend.Server().Append(msg.NewLog(fmt.Sprintf(format, a...), c.conf.Host, time.Now()))
 	})
 }
 
@@ -102,12 +101,12 @@ func (c *Client) Run() {
 // returns the channel with name given by m.Params[n] if it exists, otherwise the server appender.
 func (c *Client) appenderByParam(m *message, n int) Appender {
 	if len(m.Params) <= n {
-		return c.frontend.Server()
+		return c.Frontend.Server()
 	}
 	if ch, ok := c.channels[m.Params[n]]; ok {
 		return ch
 	}
-	return c.frontend.Server()
+	return c.Frontend.Server()
 }
 
 func (c *Client) handleMessage(m *message) {
@@ -124,7 +123,7 @@ func (c *Client) handleMessage(m *message) {
 		var ch Channel
 		var ok bool
 		if ch, ok = c.channels[name]; !ok {
-			ch = c.frontend.NewChannel(name)
+			ch = c.Frontend.NewChannel(name)
 			c.channels[name] = ch
 		}
 		ch.Append(msg.NewJoin(m.Prefix, name, m.ToA))
@@ -133,7 +132,7 @@ func (c *Client) handleMessage(m *message) {
 		c.Printf("PONG :%s\r\n", m.Trailing)
 		fallthrough
 	default:
-		c.frontend.Server().Append(msg.NewDefault(c.conf.Host, m.Raw, m.ToA))
+		c.Frontend.Server().Append(msg.NewDefault(c.conf.Host, m.Raw, m.ToA))
 	}
 }
 
