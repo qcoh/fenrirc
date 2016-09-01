@@ -105,6 +105,7 @@ func (a *Application) connect(conf *config.Server) {
 	f := NewFrontend(conf, c)
 	a.frontends = append(a.frontends, f)
 	c.Frontend = f
+	a.setCurrent(f.first())
 
 	go func() {
 		if err := c.Connect(); err != nil {
