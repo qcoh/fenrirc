@@ -7,6 +7,7 @@ import (
 	"io"
 )
 
+// View accumulates the interfaces for server and channel structs.
 type View interface {
 	irc.Appender
 	mondrian.InteractiveWidget

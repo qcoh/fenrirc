@@ -6,15 +6,18 @@ import (
 	"io"
 )
 
+// Server combines a messagebuffer with a handler.
 type Server struct {
 	*mondrian.MessageBuffer
 	client io.Writer
 }
 
+// NewServer constructs a server.
 func NewServer(client io.Writer) *Server {
 	return &Server{MessageBuffer: NewMessageBuffer(), client: client}
 }
 
+// Handle handles user (prompt) input.
 func (s *Server) Handle(cmd *Command) {
 	switch cmd.Command {
 	case "WHOIS":
