@@ -117,7 +117,7 @@ func newJoin(prefix string, name string, toa time.Time) mondrian.Message {
 
 // Draw draws the message.
 func (j *Join) Draw(r *mondrian.Region) {
-	r.LPrintf("[%02d:%02d:] ", j.ToA.Hour(), j.ToA.Minute())
+	r.LPrintf("[%02d:%02d] ", j.ToA.Hour(), j.ToA.Minute())
 	r.Xbase = r.Cx
 	r.Printf("%s has joined %s", j.Nick, j.Channel)
 }
