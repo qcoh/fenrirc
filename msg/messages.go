@@ -17,6 +17,8 @@ var (
 	NewJoin = newJoin
 	// NewPrivate is the constructor for `msg.Private`.
 	NewPrivate = newPrivate
+	// NewReplyTopic is the constructor for `msg.ReplyTopic`.
+	NewReplyTopic = newReplyTopic
 )
 
 type message interface {
@@ -139,4 +141,23 @@ func (p *Private) Draw(r *mondrian.Region) {
 	r.Xbase = r.Cx
 	r.LPrintf("<%s> ", p.Nick)
 	r.Printf("%s", p.Content)
+}
+
+// ReplyTopic displays a RPL_TOPIC message.
+type ReplyTopic struct {
+	Channel string
+	Topic   string
+	ToA     time.Time
+}
+
+func newReplyTopic(channel string, topic string, toa time.Time) mondrian.Message {
+	return Wrap(&ReplyTopic{Channel: channel, Topic: topic, ToA: toa})
+}
+
+// Draw draws the message.
+func (rt *ReplyTopic) Draw(r *mondrian.Region) {
+	r.LPrintf("[%02d:%02d] ", rt.ToA.Hour(), rt.ToA.Minute())
+	r.Xbase = r.Cx
+	// TODO: set by?
+	r.Printf("Topic for %s: %s", rt.Channel, rt.Topic)
 }

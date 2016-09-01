@@ -18,9 +18,9 @@ func (t *topic) Resize(r *mondrian.Region) {
 }
 
 func (t *topic) Draw() {
+	t.Attr(termbox.ColorDefault, termbox.ColorBlue)
 	t.Clear()
 	t.Move(0, 0)
-	t.Attr(termbox.ColorDefault, termbox.ColorBlue)
 	t.LPrintf("%s", t.line)
 	t.AttrDefault()
 }

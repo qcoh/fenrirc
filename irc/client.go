@@ -111,6 +111,14 @@ func (c *Client) appenderByParam(m *message, n int) Appender {
 
 func (c *Client) handleMessage(m *message) {
 	switch m.Command {
+	case "332", "RPL_TOPIC":
+		a := c.appenderByParam(m, 1)
+		if ch, ok := a.(Channel); ok {
+			a.Append(msg.NewReplyTopic(m.Params[1], m.Trailing, m.ToA))
+			ch.SetTopic(m.Trailing)
+		} else {
+			a.Append(msg.NewReplyTopic("", m.Trailing, m.ToA))
+		}
 	case "PRIVMSG":
 		c.appenderByParam(m, 0).Append(msg.NewPrivate(m.Prefix, m.Trailing, m.ToA))
 	case "JOIN":
