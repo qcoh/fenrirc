@@ -91,6 +91,10 @@ func (c *Client) Run() {
 				c.logf("Parsing error: %s", scanner.Text())
 				continue
 			}
+			if m.Command == "PING" {
+				// does trailing have CR at the end?
+				c.Printf("PONG :%s\r\n", m.Trailing)
+			}
 			c.runUI(func() {
 				c.handleMessage(m)
 			})
@@ -135,10 +139,6 @@ func (c *Client) handleMessage(m *message) {
 			c.channels[name] = ch
 		}
 		ch.Append(msg.NewJoin(m.Prefix, name, m.ToA))
-	case "PING":
-		// writing to conn is thread safe. still might be better to do this in Run.
-		c.Printf("PONG :%s\r\n", m.Trailing)
-		fallthrough
 	default:
 		c.Frontend.Server().Append(msg.NewDefault(c.conf.Host, m.Raw, m.ToA))
 	}

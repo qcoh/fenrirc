@@ -21,6 +21,7 @@ func parse(raw string) (*Command, error) {
 	if len(raw) == 0 {
 		return nil, errMalformed
 	}
+	raw = strings.TrimRight(raw, "\r\n")
 
 	ret := &Command{Raw: raw}
 
