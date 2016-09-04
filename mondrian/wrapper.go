@@ -56,7 +56,9 @@ func SetMockUI(w, h int) {
 		return nil
 	}
 	SetCell = func(x int, y int, ch rune, _ termbox.Attribute, _ termbox.Attribute) {
-		mockBuffer[x][y] = ch
+		if 0 <= x && x < len(mockBuffer) && 0 <= y && y < len(mockBuffer[0]) {
+			mockBuffer[x][y] = ch
+		}
 	}
 	SetCursor = func(x, y int) {}
 	Size = func() (int, int) {

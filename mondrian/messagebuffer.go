@@ -105,5 +105,6 @@ func (m *MessageBuffer) HandleKey(ev termbox.Event) {
 // Append appends a message.
 func (m *MessageBuffer) Append(msg Message) {
 	m.messages = append(m.messages, msg)
+	m.totalHeight += msg.Height(m.Width)
 	Draw(m)
 }

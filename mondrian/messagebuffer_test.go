@@ -43,3 +43,17 @@ func TestMessageBufferDraw(t *testing.T) {
 		}
 	}
 }
+
+func TestMessageBufferScrolling(t *testing.T) {
+	SetMockUI(10, 10)
+	m := NewMessageBuffer()
+	m.SetVisibility(true)
+	m.Resize(&Region{Width: 10, Height: 10})
+
+	for i := 0; i < 20; i++ {
+		m.Append(&mockMsg{"foo"})
+	}
+	if m.totalHeight != 20 {
+		t.Errorf("mockBuffer.totalHeight = %d != %d", m.totalHeight, 20)
+	}
+}
