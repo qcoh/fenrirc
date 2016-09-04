@@ -22,6 +22,7 @@ var (
 
 // See: http://calebdelnay.com/blog/2010/11/parsing-the-irc-message-format-as-a-client
 func parse(raw string) (*message, error) {
+	raw = strings.TrimRight(raw, "\r\n")
 	ret := &message{Raw: raw, ToA: time.Now()}
 
 	prefixEnd := -1

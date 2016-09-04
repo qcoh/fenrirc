@@ -92,8 +92,10 @@ func (c *Client) Run() {
 				continue
 			}
 			if m.Command == "PING" {
-				// does trailing have CR at the end?
 				c.Printf("PONG :%s\r\n", m.Trailing)
+				c.runUI(func() {
+					c.logf("PONG :%s\r\n", m.Trailing)
+				})
 			}
 			c.runUI(func() {
 				c.handleMessage(m)
