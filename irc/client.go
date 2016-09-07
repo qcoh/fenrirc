@@ -59,16 +59,16 @@ func (c *Client) Connect() error {
 func (c *Client) Write(p []byte) (int, error) {
 	// TODO: use a channel to make this somewhat async
 	c.conn.SetWriteDeadline(time.Now().Add(50 * time.Millisecond))
-	n, err := c.conn.Write(p)
-	if err != nil {
-		c.logf("Timeout sending last message")
-	}
-	return n, err
+	return c.conn.Write(p)
 }
 
 // Printf sends a formatted string to server.
 func (c *Client) Printf(format string, a ...interface{}) {
-	fmt.Fprintf(c.conn, format, a...)
+	s := fmt.Sprintf(format, a...)
+	c.logf("%s", s)
+	if _, err := fmt.Fprintf(c, format, a...); err != nil {
+		c.logf("%s", err.Error())
+	}
 }
 
 func (c *Client) logf(format string, a ...interface{}) {
@@ -93,9 +93,6 @@ func (c *Client) Run() {
 			}
 			if m.Command == "PING" {
 				c.Printf("PONG :%s\r\n", m.Trailing)
-				c.runUI(func() {
-					c.logf("PONG :%s\r\n", m.Trailing)
-				})
 			}
 			c.runUI(func() {
 				c.handleMessage(m)
