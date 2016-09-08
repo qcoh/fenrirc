@@ -106,11 +106,11 @@ func (j *Join) Draw(r *mondrian.Region) {
 	r.Attr(termbox.ColorCyan|termbox.AttrBold, termbox.ColorDefault)
 	r.Printf("%s", j.Nick)
 	r.AttrDefault()
-	r.Printf(" [")
+	r.LPrintf(" [")
 	r.Attr(termbox.ColorCyan, termbox.ColorDefault)
 	r.Printf("%s", j.Host)
 	r.AttrDefault()
-	r.Printf("] has joined")
+	r.LPrintf("] has joined ")
 	r.Attr(termbox.ColorDefault|termbox.AttrBold, termbox.ColorDefault)
 	r.Printf(" %s", j.Channel)
 	r.AttrDefault()
@@ -152,7 +152,7 @@ func (rt *ReplyTopic) Draw(r *mondrian.Region) {
 	r.LPrintf("[%02d:%02d] ", rt.ToA.Hour(), rt.ToA.Minute())
 	r.Xbase = r.Cx
 	// TODO: set by?
-	r.Printf("Topic for ")
+	r.LPrintf("Topic for ")
 	r.Attr(termbox.ColorCyan, termbox.ColorDefault)
 	r.Printf("%s", rt.Channel)
 	r.AttrDefault()
