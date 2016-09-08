@@ -2,6 +2,7 @@ package msg
 
 import (
 	"fenrirc/mondrian"
+	"github.com/nsf/termbox-go"
 	"strings"
 	"time"
 )
@@ -78,29 +79,41 @@ func (d *Default) Draw(r *mondrian.Region) {
 	r.Printf("%s", d.Raw)
 }
 
-func nickFromPrefix(prefix string) string {
+func nickHostFromPrefix(prefix string) (string, string) {
 	if nickEnd := strings.Index(prefix, "!"); nickEnd != -1 {
-		return prefix[0:nickEnd]
+		return prefix[0:nickEnd], prefix[nickEnd+1:]
 	}
-	return prefix
+	return prefix, ""
 }
 
 // Join displays a join message.
 type Join struct {
 	Nick    string
+	Host    string
 	Channel string
 	ToA     time.Time
 }
 
 func newJoin(prefix string, name string, toa time.Time) mondrian.Message {
-	return Wrap(&Join{Nick: nickFromPrefix(prefix), Channel: name, ToA: toa})
+	n, h := nickHostFromPrefix(prefix)
+	return Wrap(&Join{Nick: n, Host: h, Channel: name, ToA: toa})
 }
 
 // Draw draws the message.
 func (j *Join) Draw(r *mondrian.Region) {
 	r.LPrintf("[%02d:%02d] ", j.ToA.Hour(), j.ToA.Minute())
 	r.Xbase = r.Cx
-	r.Printf("%s has joined %s", j.Nick, j.Channel)
+	r.Attr(termbox.ColorCyan|termbox.AttrBold, termbox.ColorDefault)
+	r.Printf("%s", j.Nick)
+	r.AttrDefault()
+	r.Printf(" [")
+	r.Attr(termbox.ColorCyan, termbox.ColorDefault)
+	r.Printf("%s", j.Host)
+	r.AttrDefault()
+	r.Printf("] has joined")
+	r.Attr(termbox.ColorDefault|termbox.AttrBold, termbox.ColorDefault)
+	r.Printf(" %s", j.Channel)
+	r.AttrDefault()
 }
 
 // Private displays a private message. (All messages to channels are private messages!)
@@ -111,7 +124,8 @@ type Private struct {
 }
 
 func newPrivate(prefix string, content string, toa time.Time) mondrian.Message {
-	return Wrap(&Private{Nick: nickFromPrefix(prefix), Content: content, ToA: toa})
+	n, _ := nickHostFromPrefix(prefix)
+	return Wrap(&Private{Nick: n, Content: content, ToA: toa})
 }
 
 // Draw draws the message.
@@ -138,5 +152,9 @@ func (rt *ReplyTopic) Draw(r *mondrian.Region) {
 	r.LPrintf("[%02d:%02d] ", rt.ToA.Hour(), rt.ToA.Minute())
 	r.Xbase = r.Cx
 	// TODO: set by?
-	r.Printf("Topic for %s: %s", rt.Channel, rt.Topic)
+	r.Printf("Topic for ")
+	r.Attr(termbox.ColorCyan, termbox.ColorDefault)
+	r.Printf("%s", rt.Channel)
+	r.AttrDefault()
+	r.Printf(": %s", rt.Topic)
 }
