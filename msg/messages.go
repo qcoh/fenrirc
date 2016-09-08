@@ -11,8 +11,6 @@ var (
 	NewSimple = newSimple
 	// NewDefault is the constructor for `msg.Default`.
 	NewDefault = newDefault
-	// NewLog is the constructor for `msg.Log`.
-	NewLog = newLog
 	// NewJoin is the constructor for `msg.Join`.
 	NewJoin = newJoin
 	// NewPrivate is the constructor for `msg.Private`.
@@ -64,39 +62,20 @@ func (s *Simple) Draw(r *mondrian.Region) {
 
 // Default displays time, origin (irc network) and the raw line.
 type Default struct {
-	From string
-	Raw  string
-	ToA  time.Time
+	Raw string
+	ToA time.Time
 }
 
 // newDefault constructs a default message.
-func newDefault(from, raw string, toa time.Time) mondrian.Message {
-	return Wrap(&Default{From: from, Raw: raw, ToA: toa})
+func newDefault(raw string, toa time.Time) mondrian.Message {
+	return Wrap(&Default{Raw: raw, ToA: toa})
 }
 
 // Draw draws message.
 func (d *Default) Draw(r *mondrian.Region) {
 	r.LPrintf("[%02d:%02d] ", d.ToA.Hour(), d.ToA.Minute())
 	r.Xbase = r.Cx
-	r.Printf("- %s - %s", d.From, d.Raw)
-}
-
-// Log displays a warning/log.
-type Log struct {
-	Text string
-	From string
-	ToA  time.Time
-}
-
-func newLog(text, from string, toa time.Time) mondrian.Message {
-	return Wrap(&Log{Text: text, From: from, ToA: toa})
-}
-
-// Draw draws the message.
-func (l *Log) Draw(r *mondrian.Region) {
-	r.LPrintf("[%02d:%02d] ", l.ToA.Hour(), l.ToA.Minute())
-	r.Xbase = r.Cx
-	r.Printf(" - %s - %s", l.From, l.Text)
+	r.Printf("%s", d.Raw)
 }
 
 func nickFromPrefix(prefix string) string {

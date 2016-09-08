@@ -73,7 +73,7 @@ func (c *Client) Printf(format string, a ...interface{}) {
 
 func (c *Client) logf(format string, a ...interface{}) {
 	c.runUI(func() {
-		c.Frontend.Server().Append(msg.NewLog(fmt.Sprintf(format, a...), c.conf.Host, time.Now()))
+		c.Frontend.Server().Append(msg.NewDefault(fmt.Sprintf(format, a...), time.Now()))
 	})
 }
 
@@ -139,7 +139,7 @@ func (c *Client) handleMessage(m *message) {
 		}
 		ch.Append(msg.NewJoin(m.Prefix, name, m.ToA))
 	default:
-		c.Frontend.Server().Append(msg.NewDefault(c.conf.Host, m.Raw, m.ToA))
+		c.Frontend.Server().Append(msg.NewDefault(m.Raw, m.ToA))
 	}
 }
 
