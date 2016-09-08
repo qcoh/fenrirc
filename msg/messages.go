@@ -2,6 +2,7 @@ package msg
 
 import (
 	"fenrirc/mondrian"
+	"github.com/mattn/go-runewidth"
 	"github.com/nsf/termbox-go"
 	"strings"
 	"time"
@@ -18,6 +19,8 @@ var (
 	NewPrivate = newPrivate
 	// NewReplyTopic is the constructor for `msg.ReplyTopic`.
 	NewReplyTopic = newReplyTopic
+	// NewNames is the constructor for `msg.Names`.
+	NewNames = newNames
 )
 
 type message interface {
@@ -157,4 +160,57 @@ func (rt *ReplyTopic) Draw(r *mondrian.Region) {
 	r.Printf("%s", rt.Channel)
 	r.AttrDefault()
 	r.Printf(": %s", rt.Topic)
+}
+
+// Names displays the users in the channel.
+type Names struct {
+	Names    []string
+	MaxWidth int
+	ToA      time.Time
+}
+
+func newNames(names []string, toa time.Time) mondrian.Message {
+	maxwidth := 0
+	for _, nick := range names {
+		if w := runewidth.StringWidth(nick); w > maxwidth {
+			maxwidth = w
+		}
+	}
+	return Wrap(&Names{Names: names, MaxWidth: maxwidth + 2, ToA: toa})
+}
+
+// Draw draws the message.
+func (n *Names) Draw(r *mondrian.Region) {
+	r.Xbase = 8 // time
+	ncol := (r.Width - r.Xbase) / n.MaxWidth
+	if ncol == 0 {
+		ncol = 1
+	}
+	nrow := len(n.Names)/ncol + 1
+	if len(n.Names)%ncol == 0 {
+		nrow--
+	}
+
+	drawRow := func(start int) {
+		r.LPrintf("[%02d:%02d] ", n.ToA.Hour(), n.ToA.Minute())
+		for i := 0; start+i*nrow < len(n.Names); i++ {
+			r.Cx = 8 + i*n.MaxWidth
+			r.Attr(termbox.ColorBlack|termbox.AttrBold, termbox.ColorDefault)
+			r.LPrintf("[")
+			r.AttrDefault()
+			r.LPrintf("%s", n.Names[start+i*nrow])
+			r.Attr(termbox.ColorBlack|termbox.AttrBold, termbox.ColorDefault)
+			r.Cx = 8 + (i+1)*n.MaxWidth - 1
+			r.LPrintf("]")
+			r.AttrDefault()
+		}
+	}
+
+	for j := 0; j < nrow; j++ {
+		r.Xbase = 0
+		r.Cx = 0
+		drawRow(j)
+		r.Cy++
+	}
+	r.Cy--
 }

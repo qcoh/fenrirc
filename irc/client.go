@@ -7,6 +7,8 @@ import (
 	"fenrirc/msg"
 	"fmt"
 	"net"
+	"sort"
+	"strings"
 	"sync"
 	"time"
 )
@@ -18,6 +20,7 @@ type Client struct {
 	Frontend Frontend
 
 	channels map[string]Channel
+	nicks    map[string][]string
 
 	// run on ui goroutine
 	runUI func(func())
@@ -33,6 +36,7 @@ func NewClient(conf *config.Server, runUI func(func())) *Client {
 		conf:     conf,
 		runUI:    runUI,
 		channels: make(map[string]Channel),
+		nicks:    make(map[string][]string),
 	}
 }
 
@@ -114,6 +118,21 @@ func (c *Client) appenderByParam(m *message, n int) Appender {
 
 func (c *Client) handleMessage(m *message) {
 	switch m.Command {
+	case "353", "RPL_NAMEREPLY":
+		if len(m.Params) < 3 {
+			c.Frontend.Server().Append(msg.NewDefault(m.Raw, m.ToA))
+			return
+		}
+		c.nicks[m.Params[2]] = append(c.nicks[m.Params[2]], strings.Split(m.Trailing, " ")...)
+	case "366", "RPL_ENDOFNAMES":
+		if len(m.Params) < 2 {
+			c.Frontend.Server().Append(msg.NewDefault(m.Raw, m.ToA))
+			return
+		}
+		s := c.nicks[m.Params[1]]
+		delete(c.nicks, m.Params[1])
+		sort.Strings(s)
+		c.appenderByParam(m, 1).Append(msg.NewNames(s, m.ToA))
 	case "332", "RPL_TOPIC":
 		a := c.appenderByParam(m, 1)
 		if ch, ok := a.(Channel); ok {
