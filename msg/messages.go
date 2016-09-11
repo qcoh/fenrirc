@@ -119,9 +119,10 @@ func (j *Join) Draw(r *mondrian.Region) {
 	r.Attr(termbox.ColorCyan, termbox.ColorDefault)
 	r.Printf("%s", j.Host)
 	r.AttrDefault()
-	r.LPrintf("] has joined ")
+	r.Printf("] has joined")
+	r.LPrintf(" ")
 	r.Attr(termbox.ColorDefault|termbox.AttrBold, termbox.ColorDefault)
-	r.Printf(" %s", j.Channel)
+	r.Printf("%s", j.Channel)
 	r.AttrDefault()
 }
 
