@@ -2,6 +2,7 @@ package main
 
 import (
 	"fenrirc/mondrian"
+	_ "fenrirc/plugins/rainbow"
 )
 
 func main() {
