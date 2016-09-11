@@ -49,6 +49,12 @@ func (cm *Cached) Height(width int) int {
 	return r.Cy + 1
 }
 
+func drawTime(r *mondrian.Region, t time.Time) {
+	r.Attr(termbox.ColorBlack|termbox.AttrBold, termbox.ColorDefault)
+	r.LPrintf("[%02d:%02d] ", t.Hour(), t.Minute())
+	r.AttrDefault()
+}
+
 // Simple displays text.
 type Simple struct {
 	Text string
@@ -77,7 +83,7 @@ func newDefault(raw string, toa time.Time) mondrian.Message {
 
 // Draw draws message.
 func (d *Default) Draw(r *mondrian.Region) {
-	r.LPrintf("[%02d:%02d] ", d.ToA.Hour(), d.ToA.Minute())
+	drawTime(r, d.ToA)
 	r.Xbase = r.Cx
 	r.Printf("%s", d.Raw)
 }
@@ -104,7 +110,7 @@ func newJoin(prefix string, name string, toa time.Time) mondrian.Message {
 
 // Draw draws the message.
 func (j *Join) Draw(r *mondrian.Region) {
-	r.LPrintf("[%02d:%02d] ", j.ToA.Hour(), j.ToA.Minute())
+	drawTime(r, j.ToA)
 	r.Xbase = r.Cx
 	r.Attr(termbox.ColorCyan|termbox.AttrBold, termbox.ColorDefault)
 	r.Printf("%s", j.Nick)
@@ -133,7 +139,7 @@ func newPrivate(prefix string, content string, toa time.Time) mondrian.Message {
 
 // Draw draws the message.
 func (p *Private) Draw(r *mondrian.Region) {
-	r.LPrintf("[%02d:%02d] ", p.ToA.Hour(), p.ToA.Minute())
+	drawTime(r, p.ToA)
 	r.Xbase = r.Cx
 	r.LPrintf("<%s> ", p.Nick)
 	r.Printf("%s", p.Content)
@@ -152,7 +158,7 @@ func newReplyTopic(channel string, topic string, toa time.Time) mondrian.Message
 
 // Draw draws the message.
 func (rt *ReplyTopic) Draw(r *mondrian.Region) {
-	r.LPrintf("[%02d:%02d] ", rt.ToA.Hour(), rt.ToA.Minute())
+	drawTime(r, rt.ToA)
 	r.Xbase = r.Cx
 	// TODO: set by?
 	r.LPrintf("Topic for ")
@@ -192,7 +198,7 @@ func (n *Names) Draw(r *mondrian.Region) {
 	}
 
 	drawRow := func(start int) {
-		r.LPrintf("[%02d:%02d] ", n.ToA.Hour(), n.ToA.Minute())
+		drawTime(r, n.ToA)
 		for i := 0; start+i*nrow < len(n.Names); i++ {
 			r.Cx = 8 + i*n.MaxWidth
 			r.Attr(termbox.ColorBlack|termbox.AttrBold, termbox.ColorDefault)
