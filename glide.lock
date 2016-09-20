@@ -1,10 +1,10 @@
 hash: 4c0902efb187ef2891f1081244efcf4fa91d7f6c275a3bc28ad397492741c524
-updated: 2016-08-04T20:48:16.392559801+02:00
+updated: 2016-09-20T16:06:13.911248395+02:00
 imports:
 - name: github.com/BurntSushi/toml
   version: 99064174e013895bbd9b025c31100bd1d9b590ca
 - name: github.com/mattn/go-runewidth
   version: d6bea18f789704b5f83375793155289da36a3c7f
 - name: github.com/nsf/termbox-go
-  version: 0723e7c3d0a317dea811f0fbe4d6edd81908c971
+  version: b6acae516ace002cb8105a89024544a1480655a5
 testImports: []
