@@ -49,10 +49,8 @@ func newPrivate256(prefix, content string, toa time.Time) mondrian.Message {
 }
 
 func (p *private256) Draw(r *mondrian.Region) {
-	r.Attr(termbox.ColorBlack|termbox.AttrBold, termbox.ColorDefault)
-	r.LPrintf("[%02d:%02d] ", p.ToA.Hour(), p.ToA.Minute())
 	r.AttrDefault()
-	r.LPrintf("<")
+	r.LPrintf("[%02d:%02d] <", p.ToA.Hour(), p.ToA.Minute())
 	r.Attr(colorHash(p.Nick), termbox.ColorDefault)
 	r.LPrintf("%s", p.Nick)
 	r.AttrDefault()

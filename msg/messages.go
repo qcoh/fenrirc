@@ -50,9 +50,8 @@ func (cm *Cached) Height(width int) int {
 }
 
 func drawTime(r *mondrian.Region, t time.Time) {
-	r.Attr(termbox.ColorBlack|termbox.AttrBold, termbox.ColorDefault)
-	r.LPrintf("[%02d:%02d] ", t.Hour(), t.Minute())
 	r.AttrDefault()
+	r.LPrintf("[%02d:%02d] ", t.Hour(), t.Minute())
 }
 
 // Simple displays text.
@@ -202,11 +201,11 @@ func (n *Names) Draw(r *mondrian.Region) {
 		drawTime(r, n.ToA)
 		for i := 0; start+i*nrow < len(n.Names); i++ {
 			r.Cx = 8 + i*n.MaxWidth
-			r.Attr(termbox.ColorBlack|termbox.AttrBold, termbox.ColorDefault)
+			r.Attr(termbox.ColorDefault|termbox.AttrBold, termbox.ColorDefault)
 			r.LPrintf("[")
 			r.AttrDefault()
 			r.LPrintf("%s", n.Names[start+i*nrow])
-			r.Attr(termbox.ColorBlack|termbox.AttrBold, termbox.ColorDefault)
+			r.Attr(termbox.ColorDefault|termbox.AttrBold, termbox.ColorDefault)
 			r.Cx = 8 + (i+1)*n.MaxWidth - 1
 			r.LPrintf("]")
 			r.AttrDefault()
