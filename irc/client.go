@@ -89,7 +89,7 @@ func (c *Client) Run() {
 
 		scanner := bufio.NewScanner(c.conn)
 		for scanner.Scan() {
-			m, err := parse(scanner.Text())
+			m, err := msg.Parse(scanner.Text())
 			if err != nil {
 				// handle error
 				c.logf("Parsing error: %s", scanner.Text())
@@ -106,7 +106,7 @@ func (c *Client) Run() {
 }
 
 // returns the channel with name given by m.Params[n] if it exists, otherwise the server appender.
-func (c *Client) appenderByParam(m *message, n int) Appender {
+func (c *Client) appenderByParam(m *msg.Message, n int) Appender {
 	if len(m.Params) <= n {
 		return c.Frontend.Server()
 	}
@@ -116,7 +116,7 @@ func (c *Client) appenderByParam(m *message, n int) Appender {
 	return c.Frontend.Server()
 }
 
-func (c *Client) handleMessage(m *message) {
+func (c *Client) handleMessage(m *msg.Message) {
 	switch m.Command {
 	case "353", "RPL_NAMEREPLY":
 		if len(m.Params) < 3 {

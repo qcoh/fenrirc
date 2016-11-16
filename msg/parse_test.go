@@ -1,10 +1,10 @@
-package irc
+package msg
 
 import (
 	"testing"
 )
 
-func compare(a, b *message) bool {
+func compare(a, b *Message) bool {
 	if len(a.Params) != len(b.Params) {
 		return false
 	}
@@ -23,7 +23,7 @@ func TestParse(t *testing.T) {
 		":CalebDelnay!calebd@localhost QUIT :Bye bye!",
 		":Macha!~macha@unaffiliated/macha PRIVMSG #botwar :Test response",
 	}
-	out := []*message{
+	out := []*Message{
 		{Prefix: "Kevin!bncworld@I-Have.a.cool.vhost.com", Command: "PRIVMSG", Params: []string{"#mIRC"}, Trailing: "I feel lucky today"},
 		{Prefix: "", Command: "PING", Params: []string{}, Trailing: "something"},
 		{Prefix: "CalebDelnay!calebd@localhost", Command: "MODE", Params: []string{"#mychannel", "-l"}, Trailing: ""},
@@ -32,7 +32,7 @@ func TestParse(t *testing.T) {
 	}
 
 	for k := range in {
-		p, err := parse(in[k])
+		p, err := Parse(in[k])
 		if err != nil {
 			t.Error(err)
 		}
