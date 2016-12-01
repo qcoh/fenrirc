@@ -7,6 +7,7 @@ import (
 	"flag"
 	"github.com/nsf/termbox-go"
 	"io/ioutil"
+	"time"
 )
 
 // Application pulls everything together.
@@ -48,6 +49,7 @@ func NewApplication() *Application {
 			{X: r.X, Y: r.Y + r.Height - 1, Width: r.Width, Height: 1},
 		}
 	}
+	ret.status.Global = TimeStatusProvider{}
 
 	// TODO: clean shutdown
 	go func() {
@@ -169,6 +171,9 @@ func (a *Application) Run() {
 	a.Resize(&mondrian.Region{Width: w, Height: h})
 	mondrian.Draw(a)
 
+	ticker := time.Tick(1 * time.Second)
+	old := time.Now()
+
 	for !a.quit {
 		select {
 		case ev := <-a.event:
@@ -181,6 +186,12 @@ func (a *Application) Run() {
 			}
 		case f := <-a.cmd:
 			f()
+
+		case t := <-ticker:
+			if t.Minute() != old.Minute() {
+				old = t
+				mondrian.Draw(a.status)
+			}
 		}
 	}
 }
