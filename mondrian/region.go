@@ -107,7 +107,8 @@ func (r *Region) Printf(format string, a ...interface{}) {
 	r.complicatedPrint(fmt.Sprintf(format, a...))
 }
 
-func (r *Region) simplePrint(text string) {
+// LPrint prints a string to single line of a region. No linebreaks are performed.
+func (r *Region) LPrint(text string) {
 	for _, ch := range text {
 		r.SetCell(r.Cx, r.Cy, ch, r.Fg, r.Bg)
 		r.Cx += runewidth.RuneWidth(ch)
@@ -120,5 +121,5 @@ func (r *Region) simplePrint(text string) {
 
 // LPrintf prints the formatted string to a single line of a region. No linebreaks are performed.
 func (r *Region) LPrintf(format string, a ...interface{}) {
-	r.simplePrint(fmt.Sprintf(format, a...))
+	r.LPrint(fmt.Sprintf(format, a...))
 }
