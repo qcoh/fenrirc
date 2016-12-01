@@ -76,8 +76,8 @@ type Default struct {
 }
 
 // newDefault constructs a default message.
-func newDefault(raw string, toa time.Time) mondrian.Message {
-	return Wrap(&Default{Raw: raw, ToA: toa})
+func newDefault(m *Message) mondrian.Message {
+	return Wrap(&Default{Raw: m.Raw, ToA: m.ToA})
 }
 
 // Draw draws message.
@@ -89,7 +89,7 @@ func (d *Default) Draw(r *mondrian.Region) {
 
 func nickHostFromPrefix(prefix string) (string, string) {
 	if nickEnd := strings.Index(prefix, "!"); nickEnd != -1 {
-		return prefix[0:nickEnd], prefix[nickEnd+1:]
+		return prefix[0:nickEnd], prefix[nickEnd+2:]
 	}
 	return prefix, ""
 }
@@ -102,9 +102,16 @@ type Join struct {
 	ToA     time.Time
 }
 
-func newJoin(prefix string, name string, toa time.Time) mondrian.Message {
-	n, h := nickHostFromPrefix(prefix)
-	return Wrap(&Join{Nick: n, Host: h, Channel: name, ToA: toa})
+func newJoin(m *Message) mondrian.Message {
+	n, h := nickHostFromPrefix(m.Prefix)
+	var ch string
+	if len(m.Params) > 0 {
+		ch = m.Params[0]
+	} else {
+		ch = m.Trailing
+	}
+
+	return Wrap(&Join{Nick: n, Host: h, Channel: ch, ToA: m.ToA})
 }
 
 // Draw draws the message.
@@ -132,9 +139,9 @@ type Private struct {
 	ToA     time.Time
 }
 
-func newPrivate(prefix string, content string, toa time.Time) mondrian.Message {
-	n, _ := nickHostFromPrefix(prefix)
-	return Wrap(&Private{Nick: n, Content: content, ToA: toa})
+func newPrivate(m *Message) mondrian.Message {
+	n, _ := nickHostFromPrefix(m.Prefix)
+	return Wrap(&Private{Nick: n, Content: m.Trailing, ToA: m.ToA})
 }
 
 // Draw draws the message.
@@ -152,8 +159,12 @@ type ReplyTopic struct {
 	ToA     time.Time
 }
 
-func newReplyTopic(channel string, topic string, toa time.Time) mondrian.Message {
-	return Wrap(&ReplyTopic{Channel: channel, Topic: topic, ToA: toa})
+func newReplyTopic(m *Message) mondrian.Message {
+	var ch string
+	if len(m.Params) > 1 {
+		ch = m.Params[1]
+	}
+	return Wrap(&ReplyTopic{Channel: ch, Topic: m.Trailing, ToA: m.ToA})
 }
 
 // Draw draws the message.

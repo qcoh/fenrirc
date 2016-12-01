@@ -40,12 +40,12 @@ type private256 struct {
 	ToA     time.Time
 }
 
-func newPrivate256(prefix, content string, toa time.Time) mondrian.Message {
-	n := prefix
-	if nickEnd := strings.Index(prefix, "!"); nickEnd != -1 {
-		n = prefix[0:nickEnd]
+func newPrivate256(m *msg.Message) mondrian.Message {
+	n := m.Prefix
+	if nickEnd := strings.Index(m.Prefix, "!"); nickEnd != -1 {
+		n = m.Prefix[0:nickEnd]
 	}
-	return msg.Wrap(&private256{Nick: n, Content: content, ToA: toa})
+	return msg.Wrap(&private256{Nick: n, Content: m.Trailing, ToA: m.ToA})
 }
 
 func (p *private256) Draw(r *mondrian.Region) {

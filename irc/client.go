@@ -77,7 +77,7 @@ func (c *Client) Printf(format string, a ...interface{}) {
 
 func (c *Client) logf(format string, a ...interface{}) {
 	c.runUI(func() {
-		c.Frontend.Server().Append(msg.NewDefault(fmt.Sprintf(format, a...), time.Now()))
+		c.Frontend.Server().Append(msg.NewDefault(&msg.Message{Raw: fmt.Sprintf(format, a...), ToA: time.Now()}))
 	})
 }
 
@@ -120,13 +120,13 @@ func (c *Client) handleMessage(m *msg.Message) {
 	switch m.Command {
 	case "353", "RPL_NAMEREPLY":
 		if len(m.Params) < 3 {
-			c.Frontend.Server().Append(msg.NewDefault(m.Raw, m.ToA))
+			c.Frontend.Server().Append(msg.NewDefault(m))
 			return
 		}
 		c.nicks[m.Params[2]] = append(c.nicks[m.Params[2]], strings.Split(m.Trailing, " ")...)
 	case "366", "RPL_ENDOFNAMES":
 		if len(m.Params) < 2 {
-			c.Frontend.Server().Append(msg.NewDefault(m.Raw, m.ToA))
+			c.Frontend.Server().Append(msg.NewDefault(m))
 			return
 		}
 		s := c.nicks[m.Params[1]]
@@ -136,13 +136,13 @@ func (c *Client) handleMessage(m *msg.Message) {
 	case "332", "RPL_TOPIC":
 		a := c.appenderByParam(m, 1)
 		if ch, ok := a.(Channel); ok {
-			a.Append(msg.NewReplyTopic(m.Params[1], m.Trailing, m.ToA))
+			a.Append(msg.NewReplyTopic(m))
 			ch.SetTopic(m.Trailing)
 		} else {
-			a.Append(msg.NewReplyTopic("", m.Trailing, m.ToA))
+			a.Append(msg.NewReplyTopic(m))
 		}
 	case "PRIVMSG":
-		c.appenderByParam(m, 0).Append(msg.NewPrivate(m.Prefix, m.Trailing, m.ToA))
+		c.appenderByParam(m, 0).Append(msg.NewPrivate(m))
 	case "JOIN":
 		var name string
 		if len(m.Params) > 0 {
@@ -156,9 +156,9 @@ func (c *Client) handleMessage(m *msg.Message) {
 			ch = c.Frontend.NewChannel(name)
 			c.channels[name] = ch
 		}
-		ch.Append(msg.NewJoin(m.Prefix, name, m.ToA))
+		ch.Append(msg.NewJoin(m))
 	default:
-		c.Frontend.Server().Append(msg.NewDefault(m.Raw, m.ToA))
+		c.Frontend.Server().Append(msg.NewDefault(m))
 	}
 }
 
