@@ -163,6 +163,11 @@ func (c *Client) handleMessage(m *msg.Message) {
 
 // Close closes the client.
 func (c *Client) Close() error {
+	if c.conf.QuitMsg != "" {
+		c.Printf("QUIT :%s\r\n", c.conf.QuitMsg)
+	} else {
+		c.Printf("QUIT\r\n")
+	}
 	c.quit <- struct{}{}
 	err := c.conn.Close()
 	c.wg.Wait()

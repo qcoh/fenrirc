@@ -26,6 +26,8 @@ type Application struct {
 	frontends []*Frontend
 	findex    int
 	clients   map[string]*irc.Client
+
+	ticker *time.Ticker
 }
 
 // NewApplication is the constructor.
@@ -39,6 +41,7 @@ func NewApplication() *Application {
 		event:     make(chan termbox.Event),
 		frontends: []*Frontend{},
 		clients:   make(map[string]*irc.Client),
+		ticker:    time.NewTicker(1 * time.Second),
 	}
 	ret.prompt = NewPrompt(ret)
 	ret.Children = []mondrian.Widget{ret.current, ret.status, ret.prompt}
@@ -70,8 +73,7 @@ func NewApplication() *Application {
 func (a *Application) Handle(cmd *Command) {
 	switch cmd.Command {
 	case "QUIT":
-		// TODO: clean shutdown
-		a.quit = true
+		a.Close()
 	case "CONNECT":
 		// well, flag does the job for now
 		fs := flag.NewFlagSet(cmd.Command, flag.ContinueOnError)
@@ -132,8 +134,7 @@ func (a *Application) HandleKey(ev termbox.Event) {
 	redraw := true
 	switch ev.Key {
 	case termbox.KeyCtrlQ:
-		a.quit = true
-		redraw = false
+		a.Close()
 		return
 	case termbox.KeyCtrlN:
 		if len(a.frontends) == 0 {
@@ -171,7 +172,6 @@ func (a *Application) Run() {
 	a.Resize(&mondrian.Region{Width: w, Height: h})
 	mondrian.Draw(a)
 
-	ticker := time.Tick(1 * time.Second)
 	old := time.Now()
 
 	for !a.quit {
@@ -187,11 +187,22 @@ func (a *Application) Run() {
 		case f := <-a.cmd:
 			f()
 
-		case t := <-ticker:
+		case t := <-a.ticker.C:
 			if t.Minute() != old.Minute() {
 				old = t
 				mondrian.Draw(a.status)
 			}
 		}
 	}
+}
+
+// Close closes all resources (IRC connections, ticker, ...) and quits the main loop.
+func (a *Application) Close() {
+	for _, client := range a.clients {
+		if err := client.Close(); err != nil {
+			// TODO: log error
+		}
+	}
+	a.ticker.Stop()
+	a.quit = true
 }

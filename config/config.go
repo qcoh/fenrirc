@@ -19,6 +19,8 @@ type Server struct {
 	Real string
 	Pass string
 	SSL  bool
+
+	QuitMsg string
 }
 
 // Get reads the configuration from the file `path` or returns an error.
