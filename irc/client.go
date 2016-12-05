@@ -68,8 +68,6 @@ func (c *Client) Write(p []byte) (int, error) {
 
 // Printf sends a formatted string to server.
 func (c *Client) Printf(format string, a ...interface{}) {
-	s := fmt.Sprintf(format, a...)
-	c.logf("%s", s)
 	if _, err := fmt.Fprintf(c, format, a...); err != nil {
 		c.logf("%s", err.Error())
 	}
@@ -97,6 +95,7 @@ func (c *Client) Run() {
 			}
 			if m.Command == "PING" {
 				c.Printf("PONG :%s\r\n", m.Trailing)
+				continue
 			}
 			c.runUI(func() {
 				c.handleMessage(m)
