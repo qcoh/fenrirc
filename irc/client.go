@@ -9,7 +9,6 @@ import (
 	"net"
 	"sort"
 	"strings"
-	"sync"
 	"time"
 )
 
@@ -24,10 +23,6 @@ type Client struct {
 
 	// run on ui goroutine
 	runUI func(func())
-
-	// clean shutdown
-	wg   sync.WaitGroup
-	quit chan struct{}
 }
 
 // NewClient returns a client
@@ -82,9 +77,6 @@ func (c *Client) logf(format string, a ...interface{}) {
 // Run spawns the read and write loops.
 func (c *Client) Run() {
 	go func() {
-		c.wg.Add(1)
-		defer c.wg.Done()
-
 		scanner := bufio.NewScanner(c.conn)
 		for scanner.Scan() {
 			m, err := msg.Parse(scanner.Text())
@@ -168,9 +160,7 @@ func (c *Client) Close() error {
 	} else {
 		c.Printf("QUIT\r\n")
 	}
-	c.quit <- struct{}{}
 	err := c.conn.Close()
-	c.wg.Wait()
 
 	return err
 }
