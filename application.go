@@ -23,9 +23,10 @@ type Application struct {
 	event chan termbox.Event
 	runUI func(func())
 
-	frontends []*Frontend
-	findex    int
-	clients   map[string]*irc.Client
+	frontends       []*Frontend
+	currentFrontend int
+	currentWidget   int
+	clients         map[string]*irc.Client
 
 	ticker *time.Ticker
 }
@@ -109,7 +110,7 @@ func (a *Application) connect(conf *config.Server) {
 	f := NewFrontend(conf, c)
 	a.frontends = append(a.frontends, f)
 	c.Frontend = f
-	a.setCurrent(f.first())
+	a.setCurrent(f.server)
 
 	go func() {
 		if err := c.Connect(); err != nil {
@@ -128,9 +129,37 @@ func (a *Application) setCurrent(w mondrian.InteractiveWidget) {
 	a.Resize(a.Region)
 }
 
+func (a *Application) next() {
+	if a.currentWidget+1 < len(a.frontends[a.currentFrontend].channels) {
+		a.currentWidget++
+		a.setCurrent(a.frontends[a.currentFrontend].channels[a.currentWidget])
+	} else {
+		a.currentFrontend = (a.currentFrontend + 1) % len(a.frontends)
+		a.currentWidget = -1
+		a.setCurrent(a.frontends[a.currentFrontend].server)
+	}
+}
+
+func (a *Application) prev() {
+	if a.currentWidget == 0 {
+		a.currentWidget = -1
+		a.setCurrent(a.frontends[a.currentFrontend].server)
+	} else if a.currentWidget == -1 {
+		a.currentFrontend = ((a.currentFrontend-1)%len(a.frontends) + len(a.frontends)) % len(a.frontends)
+		a.currentWidget = len(a.frontends[a.currentFrontend].channels) - 1
+		if a.currentWidget == -1 {
+			a.setCurrent(a.frontends[a.currentFrontend].server)
+		} else {
+			a.setCurrent(a.frontends[a.currentFrontend].channels[a.currentWidget])
+		}
+	} else {
+		a.currentWidget--
+		a.setCurrent(a.frontends[a.currentFrontend].channels[a.currentWidget])
+	}
+}
+
 // HandleKey handles user input.
 func (a *Application) HandleKey(ev termbox.Event) {
-	var w mondrian.InteractiveWidget
 	redraw := true
 	switch ev.Key {
 	case termbox.KeyCtrlQ:
@@ -140,20 +169,12 @@ func (a *Application) HandleKey(ev termbox.Event) {
 		if len(a.frontends) == 0 {
 			return
 		}
-		if w = a.frontends[a.findex].next(); w == nil {
-			a.findex = (a.findex + 1) % len(a.frontends)
-			w = a.frontends[a.findex].first()
-		}
-		a.setCurrent(w)
+		a.next()
 	case termbox.KeyCtrlP:
 		if len(a.frontends) == 0 {
 			return
 		}
-		if w = a.frontends[a.findex].prev(); w == nil {
-			a.findex = ((a.findex-1)%len(a.frontends) + len(a.frontends)) % len(a.frontends)
-			w = a.frontends[a.findex].last()
-		}
-		a.setCurrent(w)
+		a.prev()
 	default:
 		redraw = false
 		a.prompt.HandleKey(ev)
