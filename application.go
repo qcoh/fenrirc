@@ -14,9 +14,13 @@ import (
 type Application struct {
 	*mondrian.Box
 
-	current mondrian.InteractiveWidget
-	status  *Status
-	prompt  *Prompt
+	current interface {
+		mondrian.InteractiveWidget
+		StatusProvider
+		Handler
+	}
+	status *Status
+	prompt *Prompt
 
 	quit  bool
 	cmd   chan func()
@@ -35,7 +39,7 @@ type Application struct {
 func NewApplication() *Application {
 	ret := &Application{
 		Box:       mondrian.NewBox(),
-		current:   firstMB,
+		current:   welcome,
 		status:    NewStatus(),
 		quit:      false,
 		cmd:       make(chan func()),
@@ -111,6 +115,7 @@ func (a *Application) connect(conf *config.Server) {
 	a.frontends = append(a.frontends, f)
 	c.Frontend = f
 	a.setCurrent(f.server)
+	mondrian.Draw(a)
 
 	go func() {
 		if err := c.Connect(); err != nil {
@@ -121,12 +126,17 @@ func (a *Application) connect(conf *config.Server) {
 	}()
 }
 
-func (a *Application) setCurrent(w mondrian.InteractiveWidget) {
+func (a *Application) setCurrent(w interface {
+	mondrian.InteractiveWidget
+	Handler
+	StatusProvider
+}) {
 	a.current.SetVisibility(false)
 	a.current = w
 	a.Box.Children[0] = w
 	a.current.SetVisibility(true)
 	a.Resize(a.Region)
+	a.status.Current = a.current
 }
 
 func (a *Application) next() {
