@@ -20,7 +20,7 @@ func NewFrontend(conf *config.Server, client io.Writer) *Frontend {
 	return &Frontend{
 		conf:     conf,
 		client:   client,
-		server:   NewServer(client),
+		server:   NewServer(conf, client),
 		channels: []*Channel{},
 	}
 

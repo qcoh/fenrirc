@@ -85,3 +85,9 @@ func (c *Channel) Handle(cmd *Command) {
 		}
 	}
 }
+
+// Status provides some channel info.
+func (c *Channel) Status() string {
+	// TODO
+	return ""
+}
