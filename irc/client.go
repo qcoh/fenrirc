@@ -1,7 +1,14 @@
 package irc
 
 import (
+	"bufio"
+	"crypto/tls"
 	"fenrirc/config"
+	"fenrirc/msg"
+	"fmt"
+	"net"
+	"strings"
+	"time"
 )
 
 // A Client represents a connection to an IRC network.
@@ -93,7 +100,7 @@ func (c *Client) handleMessage(m *msg.Message) {
 	switch m.Command {
 	case "353", "RPL_NAMEREPLY":
 		if ch := c.channelByParam(m, 2); ch != nil {
-			ch.nicks = append(ch.nicks, strings.Split(m.Trailing, " "))
+			ch.nicks = append(ch.nicks, strings.Split(m.Trailing, " ")...)
 		} else {
 			c.logf("%s", m.Raw)
 		}
@@ -125,9 +132,8 @@ func (c *Client) handleMessage(m *msg.Message) {
 		}
 		ch, ok := c.channels[name]
 		if !ok {
-			ch = c.frontend.NewChannel(name)
 			c.channels[name] = &channel{
-				Channel: ch,
+				Channel: c.frontend.NewChannel(name),
 				Client:  c,
 				name:    name,
 				nicks:   []string{},

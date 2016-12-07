@@ -20,5 +20,6 @@ type Channel interface {
 type Frontend interface {
 	Server() Appender
 	NewChannel(string) Channel
+	Sync(func())
 	//Remove(Appender)
 }
