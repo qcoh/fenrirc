@@ -38,15 +38,16 @@ type Application struct {
 // NewApplication is the constructor.
 func NewApplication() *Application {
 	ret := &Application{
-		Box:       mondrian.NewBox(),
-		current:   welcome,
-		status:    NewStatus(),
-		quit:      false,
-		cmd:       make(chan func()),
-		event:     make(chan termbox.Event),
-		frontends: []*Frontend{},
-		clients:   make(map[string]*irc.Client),
-		ticker:    time.NewTicker(1 * time.Second),
+		Box:           mondrian.NewBox(),
+		current:       welcome,
+		status:        NewStatus(),
+		quit:          false,
+		cmd:           make(chan func()),
+		event:         make(chan termbox.Event),
+		frontends:     []*Frontend{},
+		clients:       make(map[string]*irc.Client),
+		ticker:        time.NewTicker(1 * time.Second),
+		currentWidget: -1,
 	}
 	ret.prompt = NewPrompt(ret)
 	ret.Children = []mondrian.Widget{ret.current, ret.status, ret.prompt}
