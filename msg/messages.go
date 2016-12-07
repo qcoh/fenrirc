@@ -21,6 +21,8 @@ var (
 	NewReplyTopic = newReplyTopic
 	// NewNames is the constructor for `msg.Names`.
 	NewNames = newNames
+	// NewLog is the constructor for `msg.Log`.
+	NewLog = newLog
 )
 
 type message interface {
@@ -230,4 +232,18 @@ func (n *Names) Draw(r *mondrian.Region) {
 		r.Cy++
 	}
 	r.Cy--
+}
+
+// Log displays a log message.
+type Log struct {
+	text string
+}
+
+func newLog(text string) mondrian.Message {
+	return Wrap(&Log{text})
+}
+
+// Draw draws the message.
+func (s *Log) Draw(r *mondrian.Region) {
+	r.LPrintf("LOG: %s", s.text)
 }
