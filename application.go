@@ -14,18 +14,14 @@ import (
 type Application struct {
 	*mondrian.Box
 
-	current interface {
-		mondrian.InteractiveWidget
-		StatusProvider
-		Handler
-	}
-	status *Status
-	prompt *Prompt
+	current mondrian.InteractiveWidget
+	status  *Status
+	prompt  *Prompt
 
-	quit  bool
-	cmd   chan func()
-	event chan termbox.Event
-	runUI func(func())
+	quit   bool
+	cmd    chan func()
+	event  chan termbox.Event
+	syncfn func(func())
 
 	frontends       []*Frontend
 	currentFrontend int
@@ -66,7 +62,7 @@ func NewApplication() *Application {
 			ret.event <- mondrian.PollEvent()
 		}
 	}()
-	ret.runUI = func(f func()) {
+	ret.syncfn = func(f func()) {
 		go func() {
 			ret.cmd <- f
 		}()
@@ -94,13 +90,14 @@ func (a *Application) Handle(cmd *Command) {
 		fs.BoolVar(&conf.SSL, "SSL", false, "")
 		if err := fs.Parse(cmd.Params); err != nil {
 			// TODO: log error
+			return
 		}
 		a.connect(conf)
 
 	default:
-		if h, ok := a.current.(Handler); ok {
-			h.Handle(cmd)
-		}
+		//if h, ok := a.current.(Handler); ok {
+		//	h.Handle(cmd)
+		//}
 	}
 }
 
@@ -110,11 +107,12 @@ func (a *Application) connect(conf *config.Server) {
 		return
 	}
 
-	c := irc.NewClient(conf, a.runUI)
-	a.clients[conf.Host] = c
-	f := NewFrontend(conf, c)
+	f := NewFrontend(conf, a.syncfn)
 	a.frontends = append(a.frontends, f)
-	c.Frontend = f
+
+	c := irc.NewClient(conf, f)
+	a.clients[conf.Host] = c
+
 	a.setCurrent(f.server)
 	mondrian.Draw(a)
 
@@ -127,17 +125,13 @@ func (a *Application) connect(conf *config.Server) {
 	}()
 }
 
-func (a *Application) setCurrent(w interface {
-	mondrian.InteractiveWidget
-	Handler
-	StatusProvider
-}) {
+func (a *Application) setCurrent(w mondrian.InteractiveWidget) {
 	a.current.SetVisibility(false)
 	a.current = w
 	a.Box.Children[0] = w
 	a.current.SetVisibility(true)
 	a.Resize(a.Region)
-	a.status.Current = a.current
+	//a.status.Current = a.current
 }
 
 func (a *Application) next() {
@@ -218,7 +212,6 @@ func (a *Application) Run() {
 			}
 		case f := <-a.cmd:
 			f()
-
 		case t := <-a.ticker.C:
 			if t.Minute() != old.Minute() {
 				old = t

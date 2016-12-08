@@ -6,22 +6,11 @@ import (
 )
 
 var (
-	welcome *Welcome
+	welcome *mondrian.MessageBuffer
 )
 
-type Welcome struct {
-	*mondrian.MessageBuffer
-}
-
-func (*Welcome) Status() string {
-	return ""
-}
-
-func (*Welcome) Handle(*Command) {
-}
-
 func init() {
-	welcome = &Welcome{mondrian.NewMessageBuffer()}
+	welcome = mondrian.NewMessageBuffer()
 	welcome.Append(msg.NewSimple("ᚠᛖᚾᚱᛁᚱᚲ"))
 }
 
@@ -30,7 +19,7 @@ func init() {
 // which displays a welcome message.
 func NewMessageBuffer() *mondrian.MessageBuffer {
 	if welcome != nil {
-		ret := welcome.MessageBuffer
+		ret := welcome
 		welcome = nil
 		return ret
 	}
