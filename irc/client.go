@@ -7,6 +7,7 @@ import (
 	"fenrirc/msg"
 	"fmt"
 	"net"
+	"sort"
 	"strings"
 	"time"
 )
@@ -107,6 +108,7 @@ func (c *Client) handleMessage(m *msg.Message) {
 		}
 	case "366", "RPL_ENDOFNAMES":
 		if ch := c.channelByParam(m, 1); ch != nil {
+			sort.Strings(ch.nicks)
 			ch.Append(msg.NewNames(ch.nicks, m.ToA))
 			// TODO: might be useful to keep nicks around
 			ch.nicks = []string{}
