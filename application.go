@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fenrirc/cmd"
 	"fenrirc/config"
 	"fenrirc/irc"
 	"fenrirc/mondrian"
@@ -72,13 +73,13 @@ func NewApplication() *Application {
 }
 
 // Handle responds to "global" user commands.
-func (a *Application) Handle(cmd *Command) {
-	switch cmd.Command {
+func (a *Application) Handle(command *cmd.Command) {
+	switch command.Method {
 	case "QUIT":
 		a.Close()
 	case "CONNECT":
 		// well, flag does the job for now
-		fs := flag.NewFlagSet(cmd.Command, flag.ContinueOnError)
+		fs := flag.NewFlagSet(command.Method, flag.ContinueOnError)
 		fs.SetOutput(ioutil.Discard)
 		conf := &config.Server{}
 		fs.StringVar(&conf.Host, "Host", "", "")
@@ -88,7 +89,7 @@ func (a *Application) Handle(cmd *Command) {
 		fs.StringVar(&conf.Real, "Real", "", "")
 		fs.StringVar(&conf.Pass, "Pass", "", "")
 		fs.BoolVar(&conf.SSL, "SSL", false, "")
-		if err := fs.Parse(cmd.Params); err != nil {
+		if err := fs.Parse(command.Params); err != nil {
 			// TODO: log error
 			return
 		}

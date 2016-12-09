@@ -1,4 +1,4 @@
-package main
+package cmd
 
 import (
 	"errors"
@@ -11,13 +11,13 @@ var (
 
 // Command is a command from the user (prompt).
 type Command struct {
-	// TODO: Name this better
-	Command string
-	Params  []string
-	Raw     string
+	Method string
+	Params []string
+	Raw    string
 }
 
-func parse(raw string) (*Command, error) {
+// Parse parses a raw string into a command.
+func Parse(raw string) (*Command, error) {
 	if len(raw) == 0 {
 		return nil, errMalformed
 	}
@@ -30,9 +30,9 @@ func parse(raw string) (*Command, error) {
 
 	s := strings.Split(raw[1:], " ")
 	if len(s) <= 1 {
-		ret.Command = s[0]
+		ret.Method = s[0]
 	} else {
-		ret.Command, ret.Params = s[0], s[1:]
+		ret.Method, ret.Params = s[0], s[1:]
 	}
 	return ret, nil
 }
