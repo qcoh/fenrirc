@@ -3,6 +3,7 @@ package irc
 import (
 	"bufio"
 	"crypto/tls"
+	"fenrirc/cmd"
 	"fenrirc/config"
 	"fenrirc/msg"
 	"fmt"
@@ -27,7 +28,8 @@ func NewClient(conf *config.Server, frontend Frontend) *Client {
 		frontend: frontend,
 		channels: make(map[string]*channel),
 	}
-	ret.server = &server{Appender: frontend.Server(), Client: ret}
+	ret.server = &server{Client: ret}
+	ret.server.Appender = ret.frontend.Server(ret.server)
 	return ret
 }
 
@@ -132,12 +134,9 @@ func (c *Client) handleMessage(m *msg.Message) {
 		}
 		ch, ok := c.channels[name]
 		if !ok {
-			c.channels[name] = &channel{
-				Channel: c.frontend.NewChannel(name),
-				Client:  c,
-				name:    name,
-				nicks:   []string{},
-			}
+			tempCh := &channel{Client: c, name: name, nicks: []string{}}
+			tempCh.Channel = c.frontend.NewChannel(name, tempCh)
+			c.channels[name] = tempCh
 		}
 		ch.Append(msg.NewJoin(m))
 	default:
@@ -162,7 +161,13 @@ type channel struct {
 	nicks []string
 }
 
+func (c *channel) Handle(command *cmd.Command) {
+}
+
 type server struct {
 	Appender
 	*Client
+}
+
+func (c *server) Handle(command *cmd.Command) {
 }

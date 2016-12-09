@@ -1,6 +1,7 @@
 package irc
 
 import (
+	"fenrirc/cmd"
 	"fenrirc/mondrian"
 )
 
@@ -18,8 +19,8 @@ type Channel interface {
 
 // Frontend is an interface for the widgets corresponding to a IRC connection.
 type Frontend interface {
-	Server() Appender
-	NewChannel(string) Channel
+	Server(cmd.Handler) Appender
+	NewChannel(string, cmd.Handler) Channel
 	Sync(func())
 	//Remove(Appender)
 }

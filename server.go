@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fenrirc/cmd"
 	"fenrirc/config"
 	"fenrirc/mondrian"
 )
@@ -8,6 +9,7 @@ import (
 // Server combines a messagebuffer with a handler.
 type Server struct {
 	*mondrian.MessageBuffer
+	cmd.Handler
 	conf *config.Server
 }
 

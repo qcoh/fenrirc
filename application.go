@@ -96,9 +96,10 @@ func (a *Application) Handle(command *cmd.Command) {
 		a.connect(conf)
 
 	default:
-		//if h, ok := a.current.(Handler); ok {
-		//	h.Handle(cmd)
-		//}
+		// TODO: do this without type assertion
+		if h, ok := a.current.(cmd.Handler); ok {
+			h.Handle(command)
+		}
 	}
 }
 

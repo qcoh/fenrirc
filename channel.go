@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fenrirc/cmd"
 	"fenrirc/mondrian"
 	"github.com/nsf/termbox-go"
 )
@@ -26,6 +27,7 @@ func (t *topic) Draw() {
 // A Channel combines a messagebuffer with a topic line.
 type Channel struct {
 	*mondrian.Box
+	cmd.Handler
 
 	t  *topic
 	mb *mondrian.MessageBuffer
@@ -34,12 +36,13 @@ type Channel struct {
 }
 
 // NewChannel constructs a channel.
-func NewChannel(name string) *Channel {
+func NewChannel(name string, handler cmd.Handler) *Channel {
 	ret := &Channel{
-		Box:  mondrian.NewBox(),
-		t:    &topic{},
-		mb:   NewMessageBuffer(),
-		name: name,
+		Box:     mondrian.NewBox(),
+		Handler: handler,
+		t:       &topic{},
+		mb:      NewMessageBuffer(),
+		name:    name,
 	}
 	ret.Children = []mondrian.Widget{ret.t, ret.mb}
 	ret.ResizeFunc = func(r *mondrian.Region) []*mondrian.Region {
