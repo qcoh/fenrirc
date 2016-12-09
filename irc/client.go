@@ -118,6 +118,7 @@ func (c *Client) handleMessage(m *msg.Message) {
 	case "332", "RPL_TOPIC":
 		if ch := c.channelByParam(m, 1); ch != nil {
 			ch.Append(msg.NewReplyTopic(m))
+			ch.SetTopic(m.Trailing)
 		} else {
 			c.logf("%s", m.Raw)
 		}
@@ -133,13 +134,11 @@ func (c *Client) handleMessage(m *msg.Message) {
 		if len(m.Params) > 0 {
 			name = m.Params[0]
 		}
-		ch, ok := c.channels[name]
-		if !ok {
-			ch = &channel{server: c.server, name: name, nicks: []string{}}
-			ch.Channel = c.frontend.NewChannel(name, ch)
-			c.channels[name] = ch
+		if ch, ok := c.channels[name]; ok {
+			ch.Append(msg.NewJoin(m))
+		} else {
+			c.logf("%s", m.Raw)
 		}
-		ch.Append(msg.NewJoin(m))
 	default:
 		c.server.Append(msg.NewDefault(m))
 	}

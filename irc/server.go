@@ -15,7 +15,13 @@ func (s *server) Handle(command *cmd.Command) {
 		if len(command.Params) == 0 {
 			return
 		}
+		if _, ok := s.channels[command.Params[0]]; ok {
+			// channel already exists, do nothing
+			return
+		}
+		ch := &channel{server: s, name: command.Params[0], nicks: []string{}}
+		ch.Channel = s.frontend.NewChannel(ch.name, ch)
+		s.channels[ch.name] = ch
 		s.server.Writef("JOIN %s\r\n", command.Params[0])
-		// TODO: write to appender
 	}
 }
