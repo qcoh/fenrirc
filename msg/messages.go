@@ -4,6 +4,7 @@ import (
 	"fenrirc/mondrian"
 	"github.com/mattn/go-runewidth"
 	"github.com/nsf/termbox-go"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -23,6 +24,8 @@ var (
 	NewNames = newNames
 	// NewLog is the constructor for `msg.Log`.
 	NewLog = newLog
+	// NewReplyTopicWhoTime is the constructor for `msg.ReplyTopicWhoTime`.
+	NewReplyTopicWhoTime = newReplyTopicWhoTime
 )
 
 type message interface {
@@ -246,4 +249,34 @@ func newLog(text string) mondrian.Message {
 // Draw draws the message.
 func (s *Log) Draw(r *mondrian.Region) {
 	r.LPrintf("LOG: %s", s.text)
+}
+
+// replyTopicWhoTime displays a RPL_TOPICWHOTIME message.
+type replyTopicWhoTime struct {
+	Name string
+	Time time.Time
+	ToA  time.Time
+}
+
+func newReplyTopicWhoTime(m *Message) mondrian.Message {
+	// TODO: validate length in irc pkg
+	n, _ := nickHostFromPrefix(m.Params[2])
+	timestamp, err := strconv.ParseInt(m.Params[3], 10, 64)
+	if err != nil {
+		// TODO
+	}
+	return Wrap(&replyTopicWhoTime{Name: n, Time: time.Unix(timestamp, 0), ToA: m.ToA})
+}
+
+// Draw draws the message.
+func (rt *replyTopicWhoTime) Draw(r *mondrian.Region) {
+	drawTime(r, rt.ToA)
+	r.Xbase = r.Cx
+	// TODO: set by?
+	r.LPrintf("Topic set by ")
+	r.Attr(termbox.AttrBold, termbox.ColorDefault)
+	r.Printf("%s", rt.Name)
+	r.AttrDefault()
+	r.LPrint(" ")
+	r.Printf("[%s]", rt.Time.Format(time.RFC822))
 }

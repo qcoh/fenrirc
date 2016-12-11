@@ -122,6 +122,12 @@ func (c *Client) handleMessage(m *msg.Message) {
 		} else {
 			c.logf("%s", m.Raw)
 		}
+	case "333", "RPL_TOPICWHOTIME":
+		if ch := c.channelByParam(m, 1); ch != nil {
+			ch.Append(msg.NewReplyTopicWhoTime(m))
+		} else {
+			c.logf("%s", m.Raw)
+		}
 	case "PRIVMSG":
 		if ch := c.channelByParam(m, 0); ch != nil {
 			ch.Append(msg.NewPrivate(m))
