@@ -36,6 +36,8 @@ var (
 	NewEndOfMOTD = newMOTD
 	// NewQuit is the constructor for `msg.quit`.
 	NewQuit = newQuit
+	// NewNick is the constructor for `msg.nick`.
+	NewNick = newNick
 )
 
 type message interface {
@@ -347,4 +349,30 @@ func (q *quit) Draw(r *mondrian.Region) {
 	r.Printf("%s", q.Host)
 	r.AttrDefault()
 	r.Printf("] has quit [%s]", q.Reason)
+}
+
+type nick struct {
+	Old  string
+	New  string
+	Host string
+	ToA  time.Time
+}
+
+func newNick(m *Message) mondrian.Message {
+	n, h := nickHostFromPrefix(m.Prefix)
+	return Wrap(&nick{Old: n, Host: h, New: m.Trailing, ToA: m.ToA})
+}
+
+func (n *nick) Draw(r *mondrian.Region) {
+	drawTime(r, n.ToA)
+	r.Xbase = r.Cx
+	r.Attr(termbox.ColorCyan, termbox.ColorDefault)
+	r.Print(n.Old)
+	r.AttrDefault()
+	r.Cx++
+	r.Print("is now known as")
+	r.Cx++
+	r.Attr(termbox.ColorCyan, termbox.ColorDefault)
+	r.Print(n.New)
+	r.AttrDefault()
 }

@@ -168,6 +168,19 @@ func (c *Client) handleMessage(m *msg.Message) {
 		} else {
 			c.logf("%s", m.Raw)
 		}
+	case "NICK":
+		if n, _, ok := nickHost(m.Prefix); ok && m.Trailing != "" {
+			for _, ch := range c.channels {
+				if ch.hasNick(n) {
+					ch.removeNick(n)
+					ch.insertNick(m.Trailing)
+					ch.Append(msg.NewNick(m))
+				}
+			}
+		} else {
+			c.logf("%s", m.Raw)
+		}
+
 	default:
 		c.server.Append(msg.NewDefault(m))
 	}
