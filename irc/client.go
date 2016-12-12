@@ -151,6 +151,9 @@ func (c *Client) handleMessage(m *msg.Message) {
 		}
 		if ch, ok := c.channels[name]; ok {
 			ch.Append(msg.NewJoin(m))
+			if n, _, ok := nickHost(m.Prefix); ok {
+				ch.insertNick(n)
+			}
 		} else {
 			c.logf("%s", m.Raw)
 		}

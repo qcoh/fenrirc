@@ -32,3 +32,13 @@ func (c *channel) removeNick(n string) {
 		c.nicks = append(c.nicks[:i], c.nicks[i+1:]...)
 	}
 }
+
+func (c *channel) insertNick(n string) {
+	i := sort.SearchStrings(c.nicks, n)
+	if i < len(c.nicks) && c.nicks[i] == n {
+		return
+	}
+	c.nicks = append(c.nicks, "")
+	copy(c.nicks[i+1:], c.nicks[i:])
+	c.nicks[i] = n
+}

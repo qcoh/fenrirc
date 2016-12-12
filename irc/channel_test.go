@@ -30,3 +30,21 @@ func TestRemoveNick(t *testing.T) {
 		t.Errorf("ch.nicks != []string{}")
 	}
 }
+
+func TestInsertNick(t *testing.T) {
+	ch := &channel{nicks: []string{}}
+	ch.insertNick("aaa")
+	if ch.nicks[0] != "aaa" {
+		t.Errorf("ch.nicks[0] != \"aaa\"")
+	}
+
+	ch.insertNick("bbb")
+	if ch.nicks[1] != "bbb" {
+		t.Errorf("ch.nicks[1] != \"bbb\"")
+	}
+
+	ch.insertNick("aaa")
+	if len(ch.nicks) != 2 {
+		t.Errorf("len(ch.nicks) != 2")
+	}
+}
