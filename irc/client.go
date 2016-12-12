@@ -102,16 +102,16 @@ func (c *Client) handleMessage(m *msg.Message) {
 	switch m.Command {
 	case "353", "RPL_NAMEREPLY":
 		if ch := c.channelByParam(m, 2); ch != nil {
-			ch.nicks = append(ch.nicks, strings.Split(m.Trailing, " ")...)
+			ch.nicksTemp = append(ch.nicksTemp, strings.Split(m.Trailing, " ")...)
 		} else {
 			c.logf("%s", m.Raw)
 		}
 	case "366", "RPL_ENDOFNAMES":
 		if ch := c.channelByParam(m, 1); ch != nil {
-			sort.Strings(ch.nicks)
-			ch.Append(msg.NewNames(ch.nicks, m.ToA))
-			// TODO: might be useful to keep nicks around
-			ch.nicks = []string{}
+			sort.Strings(ch.nicksTemp)
+			ch.Append(msg.NewNames(ch.nicksTemp, m.ToA))
+			ch.nicks = ch.nicksTemp
+			ch.nicksTemp = []string{}
 		} else {
 			c.logf("%s", m.Raw)
 		}
@@ -154,6 +154,17 @@ func (c *Client) handleMessage(m *msg.Message) {
 		} else {
 			c.logf("%s", m.Raw)
 		}
+	case "QUIT":
+		if n, _, ok := nickHost(m.Prefix); ok {
+			for _, ch := range c.channels {
+				if ch.hasNick(n) {
+					ch.Append(msg.NewQuit(m))
+					ch.removeNick(n)
+				}
+			}
+		} else {
+			c.logf("%s", m.Raw)
+		}
 	default:
 		c.server.Append(msg.NewDefault(m))
 	}
@@ -167,4 +178,12 @@ func (c *Client) Close() error {
 		c.Writef("QUIT\r\n", c.conf.QuitMsg)
 	}
 	return c.conn.Close()
+}
+
+func nickHost(s string) (string, string, bool) {
+	if nickEnd := strings.Index(s, "!"); nickEnd != -1 {
+		// TODO: verify nickEnd+2 < len
+		return s[0:nickEnd], s[nickEnd+2:], true
+	}
+	return s, "", false
 }
