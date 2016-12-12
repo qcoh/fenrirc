@@ -7,7 +7,6 @@ import (
 	"fenrirc/msg"
 	"fmt"
 	"net"
-	"sort"
 	"strings"
 	"time"
 )
@@ -108,9 +107,8 @@ func (c *Client) handleMessage(m *msg.Message) {
 		}
 	case "366", "RPL_ENDOFNAMES":
 		if ch := c.channelByParam(m, 1); ch != nil {
-			sort.Strings(ch.nicksTemp)
 			ch.Append(msg.NewNames(ch.nicksTemp, m.ToA))
-			ch.nicks = ch.nicksTemp
+			ch.SetNicks(ch.nicksTemp)
 			ch.nicksTemp = []string{}
 		} else {
 			c.logf("%s", m.Raw)
@@ -152,7 +150,7 @@ func (c *Client) handleMessage(m *msg.Message) {
 		if ch, ok := c.channels[name]; ok {
 			ch.Append(msg.NewJoin(m))
 			if n, _, ok := nickHost(m.Prefix); ok {
-				ch.insertNick(n)
+				ch.InsertNick(n)
 			}
 		} else {
 			c.logf("%s", m.Raw)
@@ -160,9 +158,9 @@ func (c *Client) handleMessage(m *msg.Message) {
 	case "QUIT":
 		if n, _, ok := nickHost(m.Prefix); ok {
 			for _, ch := range c.channels {
-				if ch.hasNick(n) {
+				if ch.HasNick(n) {
 					ch.Append(msg.NewQuit(m))
-					ch.removeNick(n)
+					ch.RemoveNick(n)
 				}
 			}
 		} else {
@@ -171,9 +169,9 @@ func (c *Client) handleMessage(m *msg.Message) {
 	case "NICK":
 		if n, _, ok := nickHost(m.Prefix); ok && m.Trailing != "" {
 			for _, ch := range c.channels {
-				if ch.hasNick(n) {
-					ch.removeNick(n)
-					ch.insertNick(m.Trailing)
+				if ch.HasNick(n) {
+					ch.RemoveNick(n)
+					ch.InsertNick(m.Trailing)
 					ch.Append(msg.NewNick(m))
 				}
 			}

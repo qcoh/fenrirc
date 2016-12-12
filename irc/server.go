@@ -19,7 +19,7 @@ func (s *server) Handle(command *cmd.Command) {
 			// channel already exists, do nothing
 			return
 		}
-		ch := &channel{server: s, name: command.Params[0], nicks: []string{}, nicksTemp: []string{}}
+		ch := &channel{server: s, name: command.Params[0], nicksTemp: []string{}}
 		ch.Channel = s.frontend.NewChannel(ch.name, ch)
 		s.channels[ch.name] = ch
 		s.server.Writef("JOIN %s\r\n", command.Params[0])

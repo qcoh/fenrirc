@@ -14,6 +14,10 @@ type Appender interface {
 type Channel interface {
 	Appender
 	SetTopic(string)
+	HasNick(string) bool
+	RemoveNick(string)
+	InsertNick(string)
+	SetNicks([]string)
 	// more to follow
 }
 
