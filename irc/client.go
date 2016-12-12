@@ -130,6 +130,13 @@ func (c *Client) handleMessage(m *msg.Message) {
 		}
 	case "NOTICE":
 		c.server.Append(msg.NewNotice(m))
+	//case "371", "RPL_INFO":
+	case "372", "RPL_MOTD":
+		c.server.Append(msg.NewMOTD(m))
+	case "375", "RPL_MOTDSTART":
+		c.server.Append(msg.NewMOTDStart(m))
+	case "376", "RPL_ENDOFMOTD":
+		c.server.Append(msg.NewEndOfMOTD(m))
 	case "PRIVMSG":
 		if ch := c.channelByParam(m, 0); ch != nil {
 			ch.Append(msg.NewPrivate(m))

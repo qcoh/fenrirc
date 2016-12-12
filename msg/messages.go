@@ -28,6 +28,12 @@ var (
 	NewReplyTopicWhoTime = newReplyTopicWhoTime
 	// NewNotice is the constructor for `msg.Notice`.
 	NewNotice = newNotice
+	// NewMOTD is the constructor for `msg.motd`.
+	NewMOTD = newMOTD
+	// NewMOTDStart is the constructor for `msg.motd`.
+	NewMOTDStart = newMOTD
+	// NewEndOfMOTD is the constructor for `msg.motd`.
+	NewEndOfMOTD = newMOTD
 )
 
 type message interface {
@@ -299,4 +305,19 @@ func (n *notice) Draw(r *mondrian.Region) {
 	r.Attr(termbox.AttrBold, termbox.ColorDefault)
 	r.Print(n.Text)
 	r.AttrDefault()
+}
+
+type motd struct {
+	Text string
+	ToA  time.Time
+}
+
+func newMOTD(m *Message) mondrian.Message {
+	return Wrap(&motd{Text: m.Trailing, ToA: m.ToA})
+}
+
+func (m *motd) Draw(r *mondrian.Region) {
+	drawTime(r, m.ToA)
+	r.Xbase = r.Cx
+	r.Print(m.Text)
 }
