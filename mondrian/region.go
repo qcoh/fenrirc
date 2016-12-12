@@ -57,7 +57,8 @@ func (r *Region) AttrDefault() {
 	r.Fg, r.Bg = termbox.ColorDefault, termbox.ColorDefault
 }
 
-func (r *Region) complicatedPrint(text string) {
+// Print prints a string to a region. If the width of the string exceeds the width of the region, a line break is inserted.
+func (r *Region) Print(text string) {
 	// TODO: benchmark this against simple strings.Split
 	scanner := bufio.NewScanner(strings.NewReader(text))
 	scanner.Split(bufio.ScanWords)
@@ -104,7 +105,7 @@ func (r *Region) complicatedPrint(text string) {
 
 // Printf prints the string of a region. If the (visual) length exceeds r.Width-r.Xbase, the line is broken at a whitespace and printing continues on the next line. If the (visual) length of a word exceeds the maximum width, the linebreak is done in the middle of the word.
 func (r *Region) Printf(format string, a ...interface{}) {
-	r.complicatedPrint(fmt.Sprintf(format, a...))
+	r.Print(fmt.Sprintf(format, a...))
 }
 
 // LPrint prints a string to single line of a region. No linebreaks are performed.
