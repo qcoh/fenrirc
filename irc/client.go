@@ -128,6 +128,8 @@ func (c *Client) handleMessage(m *msg.Message) {
 		} else {
 			c.logf("%s", m.Raw)
 		}
+	case "NOTICE":
+		c.server.Append(msg.NewNotice(m))
 	case "PRIVMSG":
 		if ch := c.channelByParam(m, 0); ch != nil {
 			ch.Append(msg.NewPrivate(m))

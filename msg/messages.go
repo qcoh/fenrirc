@@ -26,6 +26,8 @@ var (
 	NewLog = newLog
 	// NewReplyTopicWhoTime is the constructor for `msg.ReplyTopicWhoTime`.
 	NewReplyTopicWhoTime = newReplyTopicWhoTime
+	// NewNotice is the constructor for `msg.Notice`.
+	NewNotice = newNotice
 )
 
 type message interface {
@@ -279,4 +281,22 @@ func (rt *replyTopicWhoTime) Draw(r *mondrian.Region) {
 	r.AttrDefault()
 	r.LPrint(" ")
 	r.Printf("[%s]", rt.Time.Format(time.RFC822))
+}
+
+type notice struct {
+	Text string
+	ToA  time.Time
+}
+
+func newNotice(m *Message) mondrian.Message {
+	return Wrap(&notice{Text: m.Trailing, ToA: m.ToA})
+}
+
+// Draw draws the message.
+func (n *notice) Draw(r *mondrian.Region) {
+	drawTime(r, n.ToA)
+	r.Xbase = r.Cx
+	r.Attr(termbox.AttrBold, termbox.ColorDefault)
+	r.Print(n.Text)
+	r.AttrDefault()
 }
