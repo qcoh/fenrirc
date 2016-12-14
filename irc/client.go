@@ -155,11 +155,15 @@ func (c *Client) handleMessage(m *msg.Message) {
 		} else {
 			c.logf("%s", m.Raw)
 		}
-	case "QUIT":
+	case "QUIT", "PART":
 		if n, _, ok := nickHost(m.Prefix); ok {
 			for _, ch := range c.channels {
 				if ch.HasNick(n) {
-					ch.Append(msg.NewQuit(m))
+					if m.Command == "QUIT" {
+						ch.Append(msg.NewQuit(m))
+					} else {
+						ch.Append(msg.NewPart(m))
+					}
 					ch.RemoveNick(n)
 				}
 			}

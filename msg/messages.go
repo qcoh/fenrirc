@@ -38,6 +38,8 @@ var (
 	NewQuit = newQuit
 	// NewNick is the constructor for `msg.nick`.
 	NewNick = newNick
+	// NewPart is the constructor for `msg.part`.
+	NewPart = newPart
 )
 
 type message interface {
@@ -375,4 +377,29 @@ func (n *nick) Draw(r *mondrian.Region) {
 	r.Attr(termbox.ColorCyan, termbox.ColorDefault)
 	r.Print(n.New)
 	r.AttrDefault()
+}
+
+type part struct {
+	Nick   string
+	Host   string
+	Reason string
+	ToA    time.Time
+}
+
+func newPart(m *Message) mondrian.Message {
+	n, h := nickHostFromPrefix(m.Prefix)
+	return Wrap(&part{Nick: n, Host: h, ToA: m.ToA, Reason: m.Trailing})
+}
+
+func (p *part) Draw(r *mondrian.Region) {
+	drawTime(r, p.ToA)
+	r.Xbase = r.Cx
+	r.Attr(termbox.ColorCyan|termbox.AttrBold, termbox.ColorDefault)
+	r.Printf("%s", p.Nick)
+	r.AttrDefault()
+	r.LPrintf(" [")
+	r.Attr(termbox.ColorCyan, termbox.ColorDefault)
+	r.Printf("%s", p.Host)
+	r.AttrDefault()
+	r.Printf("] has left [%s]", p.Reason)
 }
