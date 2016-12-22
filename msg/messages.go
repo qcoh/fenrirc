@@ -4,6 +4,7 @@ import (
 	"fenrirc/mondrian"
 	"github.com/mattn/go-runewidth"
 	"github.com/nsf/termbox-go"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -212,7 +213,10 @@ func newNames(names []string, toa time.Time) mondrian.Message {
 			maxwidth = w
 		}
 	}
-	return Wrap(&Names{Names: names, MaxWidth: maxwidth + 2, ToA: toa})
+	ret := &Names{Names: make([]string, len(names)), MaxWidth: maxwidth + 2, ToA: toa}
+	sort.Strings(names)
+	copy(ret.Names, names)
+	return Wrap(ret)
 }
 
 // Draw draws the message.
