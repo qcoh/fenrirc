@@ -6,9 +6,9 @@ fenrirc is a terminal IRC client. Better alternatives exist!
 
 fenrirc is built using
 
- * [go-runewidth](www.github.com/mattn/go-runewidth) by mattn and others,
- * [termbox-go](www.github.com/nsf/termbox-go) by nsf and others,
- * [toml](www.github.com/BurntSushi/toml) by BurntSushi and others,
+ * [go-runewidth](https://github.com/mattn/go-runewidth) by mattn and others,
+ * [termbox-go](https://github.com/nsf/termbox-go) by nsf and others,
+ * [toml](https://github.com/BurntSushi/toml) by BurntSushi and others,
  * the Go standard library by the Go authors.
 
 ### License
