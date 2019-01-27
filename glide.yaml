@@ -1,5 +1,0 @@
-package: .
-import:
-- package: github.com/mattn/go-runewidth
-  version: ~0.0.1
-- package: github.com/nsf/termbox-go
